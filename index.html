@@ -2555,19 +2555,29 @@ function doPost(e) {
       }
     }
 
-    async function sendExternalNtfyPush(title, body, priority = "default") {
-      if (!ntfyTopic) return;
+    const NTFY_SCHEDULED_KEY = "onbbs_ntfy_scheduled_v1";
+
+    async function sendExternalNtfyPush(title, body, priority = "default", scheduleAtMs = 0) {
+      if (!ntfyTopic) return false;
       try {
-        await fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic)}`, {
+        const headers = {
+          "Title": title,
+          "Priority": priority,
+          "Tags": "wrench,bell"
+        };
+        // If scheduleAtMs is between 15 seconds and 3 days in the future, schedule delivery on ntfy server
+        if (scheduleAtMs > Date.now() + 15000 && scheduleAtMs <= Date.now() + 3 * 86400000) {
+          headers["At"] = String(Math.floor(scheduleAtMs / 1000));
+        }
+        const res = await fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic)}`, {
           method: "POST",
-          headers: {
-            "Title": title,
-            "Priority": priority,
-            "Tags": "wrench,bell"
-          },
+          headers: headers,
           body: body
         });
-      } catch (e) {}
+        return res.ok;
+      } catch (e) {
+        return false;
+      }
     }
 
     function playWorkshopAlertChime() {
@@ -2885,7 +2895,13 @@ function doPost(e) {
     }
 
     function syncAllFutureNotificationTriggers() {
-      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const canOS = ("Notification" in window && Notification.permission === "granted");
+      if (!canOS && !ntfyTopic) return;
+
+      let schedNtfyMap = {};
+      try { schedNtfyMap = JSON.parse(localStorage.getItem(NTFY_SCHEDULED_KEY) || "{}"); } catch (e) {}
+      let ntfyDirty = false;
+
       schedules.forEach((s) => {
         if (!s || s.status === "completed" || s.status === "in_progress" || !s.startDate) return;
         const parts = String(s.startDate).split("-").map(Number);
@@ -2894,14 +2910,16 @@ function doPost(e) {
         const fireDate = new Date(parts[0], parts[1] - 1, parts[2], isNaN(hh) ? 8 : hh, isNaN(mm) ? 0 : mm, 0);
         const remindDays = Number(s.remindDays ?? 0);
         const triggerTime = fireDate.getTime() - remindDays * 86400000;
-        if (triggerTime > Date.now() + 10000) {
-          const sig = sanitizeFirebaseKey(`trig_sched_${s.id}_${s.startDate}_${s.startTime || "0800"}`);
-          scheduleFutureOSNotification(
-            `⏰ موعد بدء عمل: ${s.title}`,
-            `التاريخ: ${formatDateDDMMYYYY(s.startDate)}${s.startTime ? " • الساعة " + formatTime24(s.startTime) : ""}`,
-            sig,
-            triggerTime
-          );
+        if (triggerTime > Date.now() + 15000) {
+          const sig = sanitizeFirebaseKey(`trig_sched_${s.id}_${s.startDate}_${s.startTime || "0800"}_${remindDays}`);
+          const title = `⏰ موعد بدء عمل: ${s.title}`;
+          const body = `التاريخ: ${formatDateDDMMYYYY(s.startDate)}${s.startTime ? " • الساعة " + formatTime24(s.startTime) : ""}`;
+          if (canOS) scheduleFutureOSNotification(title, body, sig, triggerTime);
+          if (ntfyTopic && !schedNtfyMap[sig] && triggerTime <= Date.now() + 3 * 86400000) {
+            schedNtfyMap[sig] = triggerTime;
+            ntfyDirty = true;
+            sendExternalNtfyPush(title, body, "high", triggerTime);
+          }
         }
       });
 
@@ -2912,16 +2930,27 @@ function doPost(e) {
         const dueDate = new Date(parts[0], parts[1] - 1, parts[2], 9, 0, 0);
         const remindDays = Number(p.remindDays ?? 3);
         const triggerTime = dueDate.getTime() - remindDays * 86400000;
-        if (triggerTime > Date.now() + 10000) {
-          const sig = sanitizeFirebaseKey(`trig_pay_${p.id}_${p.dueDate}`);
-          scheduleFutureOSNotification(
-            `💳 تذكير دفعة: ${p.title}`,
-            `المبلغ: ${Number(p.amount).toLocaleString()} ر.س • الاستحقاق: ${formatDateDDMMYYYY(p.dueDate)}`,
-            sig,
-            triggerTime
-          );
+        if (triggerTime > Date.now() + 15000) {
+          const sig = sanitizeFirebaseKey(`trig_pay_${p.id}_${p.dueDate}_${remindDays}`);
+          const title = `💳 تذكير دفعة: ${p.title}`;
+          const body = `المبلغ: ${Number(p.amount).toLocaleString()} ر.س • الاستحقاق: ${formatDateDDMMYYYY(p.dueDate)}`;
+          if (canOS) scheduleFutureOSNotification(title, body, sig, triggerTime);
+          if (ntfyTopic && !schedNtfyMap[sig] && triggerTime <= Date.now() + 3 * 86400000) {
+            schedNtfyMap[sig] = triggerTime;
+            ntfyDirty = true;
+            sendExternalNtfyPush(title, body, "high", triggerTime);
+          }
         }
       });
+
+      if (ntfyDirty) {
+        try {
+          Object.keys(schedNtfyMap).forEach(k => {
+            if (schedNtfyMap[k] < Date.now() - 86400000) delete schedNtfyMap[k];
+          });
+          localStorage.setItem(NTFY_SCHEDULED_KEY, JSON.stringify(schedNtfyMap));
+        } catch (e) {}
+      }
     }
 
     async function fireNativeNotification(title, body, tag = "onbbs-alert", actionsHtml = "", sendPush = false) {
@@ -5708,7 +5737,7 @@ function doPost(e) {
           short_name: "ONBBS مخزون",
           description: "نظام إدارة مخزون ورشة ONBBS MACHINE SHOP المتزامن بين الجوالات",
           start_url: ".",
-          display: "fullscreen",
+          display: "standalone",
           display_override: ["fullscreen", "standalone"],
           orientation: "portrait",
           background_color: "#0f1115",
@@ -5723,13 +5752,7 @@ function doPost(e) {
       } catch (e) {}
     }
 
-    // Immersive Fullscreen Mode: Hides the phone's own bottom system navigation bar while using the app
-    let autoImmersiveEnabled = true;
-    try {
-      const savedImm = localStorage.getItem("onbbs_auto_immersive");
-      if (savedImm === "0") autoImmersiveEnabled = false;
-    } catch (e) {}
-
+    // Manual Fullscreen Mode: Activates ONLY when user explicitly taps the fullscreen button
     function isAppInFullscreen() {
       return Boolean(
         document.fullscreenElement ||
@@ -5745,15 +5768,15 @@ function doPost(e) {
       const active = isAppInFullscreen();
       btn.classList.toggle("is-fullscreen", active);
       if (active) {
-        btn.title = "إظهار أزرار الجوال السفلية (إنهاء ملء الشاشة)";
+        btn.title = "إنهاء وضع ملء الشاشة";
         svg.innerHTML = '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/>';
       } else {
-        btn.title = "إخفاء أزرار الجوال السفلية (وضع ملء الشاشة)";
+        btn.title = "تكبير الشاشة (ملء الشاشة)";
         svg.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
       }
     }
 
-    async function enterAppFullscreen(silent = true) {
+    async function enterAppFullscreen() {
       if (isAppInFullscreen()) {
         updateFullscreenButtonUI();
         return true;
@@ -5770,9 +5793,7 @@ function doPost(e) {
         updateFullscreenButtonUI();
         return true;
       } catch (err) {
-        if (!silent) {
-          showToast("لإخفاء أزرار الجوال تلقائياً: ثبّت التطبيق على الشاشة الرئيسية من قائمة Chrome (⋮)");
-        }
+        showToast("متصفح هذا التطبيق لا يدعم إخفاء أزرار النظام — افتحه عبر Chrome لملء الشاشة");
         return false;
       }
     }
@@ -5792,16 +5813,12 @@ function doPost(e) {
 
     async function toggleAppFullscreen() {
       if (isAppInFullscreen()) {
-        autoImmersiveEnabled = false;
-        try { localStorage.setItem("onbbs_auto_immersive", "0"); } catch (e) {}
         await exitAppFullscreen();
-        showToast("تم إظهار أزرار الجوال السفلية");
+        showToast("تم تصغير الشاشة وإظهار أزرار الجوال");
       } else {
-        autoImmersiveEnabled = true;
-        try { localStorage.setItem("onbbs_auto_immersive", "1"); } catch (e) {}
-        const ok = await enterAppFullscreen(false);
+        const ok = await enterAppFullscreen();
         if (ok) {
-          showToast("تم إخفاء أزرار الجوال السفلية (ملء الشاشة) ✓");
+          showToast("تم تكبير الشاشة (ملء الشاشة) ✓");
         }
       }
     }
@@ -5809,13 +5826,6 @@ function doPost(e) {
     document.addEventListener("fullscreenchange", updateFullscreenButtonUI);
     document.addEventListener("webkitfullscreenchange", updateFullscreenButtonUI);
 
-    // Automatically hide phone's bottom system bar on first tap/interaction inside the app
-    function handleFirstImmersiveGesture() {
-      if (autoImmersiveEnabled && !isAppInFullscreen()) {
-        enterAppFullscreen(true);
-      }
-    }
-    document.addEventListener("pointerdown", handleFirstImmersiveGesture, { passive: true });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         updateFullscreenButtonUI();

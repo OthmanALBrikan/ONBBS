@@ -1,12 +1,60 @@
-// ONBBS MACHINE SHOP - Background Notification Service Worker (sw.js)
+// ONBBS MACHINE SHOP - Offline-First & Background Notification Service Worker (sw.js)
+const APP_SHELL_CACHE = "onbbs-app-shell-v11";
 const SNAP_CACHE = "onbbs-bg-state-v1";
+const SHELL_ASSETS = ["./", "./index.html"];
 
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(APP_SHELL_CACHE)
+      .then((cache) => cache.addAll(SHELL_ASSETS).catch(() => {}))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((k) => {
+          if (k !== APP_SHELL_CACHE && k !== SNAP_CACHE) {
+            return caches.delete(k);
+          }
+        })
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+// Serve index.html instantaneously from cache on startup (prevents 500 & ERR_NAME_NOT_RESOLVED)
+// and refresh cache silently in background when network is ready
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+
+  // Only cache same-origin app shell files; let Firebase/ntfy/Sheets go straight to network
+  if (url.origin === self.location.origin && (req.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html"))) {
+    event.respondWith(
+      caches.open(APP_SHELL_CACHE).then(async (cache) => {
+        const cached = await cache.match("./index.html") || await cache.match(req);
+        const networkFetch = fetch(req).then((networkRes) => {
+          if (networkRes && networkRes.ok && networkRes.status === 200) {
+            cache.put("./index.html", networkRes.clone()).catch(() => {});
+          }
+          return networkRes;
+        }).catch(() => null);
+
+        if (cached) {
+          event.waitUntil(networkFetch);
+          return cached;
+        }
+        const net = await networkFetch;
+        return net || new Response("<h1>ONBBS MACHINE SHOP</h1><p>جاري إعادة الاتصال...</p>", {
+          headers: { "Content-Type": "text/html; charset=utf-8" }
+        });
+      })
+    );
+  }
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -33,7 +81,6 @@ async function runBackgroundAlertScan() {
     const acked = snap.acknowledgedAlerts || {};
     let dirty = false;
 
-    // Pull latest data from Firebase while app is closed
     if (snap.syncConfig && snap.syncConfig.enabled && snap.syncConfig.provider === "firebase" && snap.syncConfig.firebaseUrl) {
       try {
         const base = String(snap.syncConfig.firebaseUrl).trim().replace(/\/+$/, "");
@@ -50,7 +97,6 @@ async function runBackgroundAlertScan() {
       } catch (netErr) {}
     }
 
-    // 1. Work Start Schedules
     (snap.schedules || []).forEach((s) => {
       if (!s || s.status === "completed" || s.status === "in_progress" || !s.startDate) return;
       const parts = String(s.startDate).split("-").map(Number);
@@ -84,7 +130,6 @@ async function runBackgroundAlertScan() {
       }
     });
 
-    // 2. Monthly Payments & Installments
     (snap.payments || []).forEach((p) => {
       if (!p || p.paidForCycle || !p.dueDate) return;
       const due = new Date(p.dueDate + "T00:00:00");
@@ -111,7 +156,6 @@ async function runBackgroundAlertScan() {
       }
     });
 
-    // 3. Low Stock Items
     (snap.inventory || []).forEach((it) => {
       if (!it) return;
       const q = Number(it.qty) || 0;
