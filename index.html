@@ -52,7 +52,7 @@
       background-color: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
-      padding-bottom: calc(var(--nav-height) + 84px);
+      padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 84px);
       overflow-x: hidden;
       line-height: 1.5;
     }
@@ -780,10 +780,10 @@
       transition: width 0.3s ease;
     }
 
-    /* Floating Action Button (Android FAB) */
+    /* App Floating Action Button (Android FAB) */
     .fab {
       position: fixed;
-      bottom: calc(var(--nav-height) + 16px);
+      bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
       left: 18px;
       z-index: 60;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
@@ -804,19 +804,20 @@
 
     .fab:active { transform: scale(0.94); }
 
-    /* Android Bottom Navigation Bar */
+    /* App Bottom Navigation Bar (6-item compact fit) */
     .bottom-nav {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      height: var(--nav-height);
+      height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
       background: #15181f;
       border-top: 1px solid var(--border-color);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       z-index: 70;
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.45);
     }
 
     .nav-item {
@@ -827,8 +828,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      font-size: 11px;
+      gap: 3px;
+      font-size: 10px;
       font-weight: 700;
       font-family: inherit;
       cursor: pointer;
@@ -838,15 +839,125 @@
     .nav-item.active { color: var(--accent-steel); }
 
     .nav-pill {
-      padding: 4px 14px;
+      padding: 3px 8px;
       border-radius: 99px;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
       transition: background 0.15s;
     }
 
     .nav-item.active .nav-pill { background: rgba(56, 189, 248, 0.16); }
+
+    .icon-btn.is-fullscreen {
+      border-color: var(--status-ok);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.14);
+    }
+
+    /* Inventory View Mode Toolbar */
+    .inline-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Inventory View Mode Switcher */
+    .view-switcher {
+      display: inline-flex;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 11px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .view-btn.active {
+      background: var(--accent-steel-dark);
+      color: #fff;
+    }
+
+    /* Grid View Layout */
+    .item-list.view-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+    }
+
+    .grid-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 7px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .grid-card.is-out { border-top: 3px solid var(--status-out); }
+    .grid-card.is-low { border-top: 3px solid var(--status-low); }
+    .grid-card.is-ok { border-top: 3px solid var(--status-ok); }
+
+    /* Compact Row View Layout */
+    .compact-row {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 9px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .compact-row.is-out { border-right: 4px solid var(--status-out); }
+    .compact-row.is-low { border-right: 4px solid var(--status-low); }
+    .compact-row.is-ok { border-right: 4px solid var(--status-ok); }
+
+    .compact-stepper {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 9px;
+      padding: 2px;
+      gap: 4px;
+    }
+
+    .compact-step-btn {
+      width: 27px;
+      height: 27px;
+      border-radius: 7px;
+      border: none;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     /* Modal / Android Bottom Sheet */
     .modal-backdrop {
@@ -1096,18 +1207,7 @@
       font-size: 12px;
     }
 
-    /* 6-item Bottom Nav compact fit */
-    .bottom-nav {
-      grid-template-columns: repeat(6, 1fr);
-    }
-    .nav-item {
-      font-size: 10px;
-      gap: 3px;
-    }
-    .nav-pill {
-      padding: 3px 8px;
-      position: relative;
-    }
+
     .nav-mini-badge {
       position: absolute;
       top: -2px;
@@ -1260,6 +1360,9 @@
       </div>
     </div>
     <div class="top-actions">
+      <button class="icon-btn" id="btn-fullscreen" onclick="toggleAppFullscreen()" title="ملء الشاشة (إخفاء أزرار الجوال السفلية)">
+        <svg id="fs-icon-svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      </button>
       <button class="icon-btn" id="btn-manual-sync" onclick="manualSyncNow()" title="مزامنة الآن">
         <svg id="sync-icon-svg" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       </button>
@@ -1319,6 +1422,29 @@
 
       <!-- Dynamic Category Chips -->
       <div class="chips-row" id="category-chips"></div>
+
+      <!-- Inventory View Mode Switcher Toolbar -->
+      <div class="inline-toolbar">
+        <span style="font-size:12px; font-weight:700; color:var(--text-secondary);">طريقة عرض الأصناف:</span>
+        <div class="view-switcher" role="group" aria-label="طريقة عرض الأصناف">
+          <button type="button" class="view-btn active" id="vbtn-cards" onclick="setInventoryViewMode('cards')" title="بطاقات تفصيلية">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/></svg>
+            بطاقات
+          </button>
+          <button type="button" class="view-btn" id="vbtn-compact" onclick="setInventoryViewMode('compact')" title="قائمة مضغوطة">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            مضغوط
+          </button>
+          <button type="button" class="view-btn" id="vbtn-grid" onclick="setInventoryViewMode('grid')" title="شبكة">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            شبكة
+          </button>
+          <button type="button" class="view-btn" id="vbtn-table" onclick="setInventoryViewMode('table')" title="جدول">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+            جدول
+          </button>
+        </div>
+      </div>
 
       <!-- Items List -->
       <div class="item-list" id="inventory-list"></div>
@@ -1469,6 +1595,8 @@
         <button class="chip" id="pchip-recurring" onclick="setPaymentFilter('recurring')">التزامات شهرية</button>
         <button class="chip" id="pchip-paid" onclick="setPaymentFilter('paid')">تم السداد ✓</button>
       </div>
+
+
 
       <div class="item-list" id="payments-list"></div>
     </section>
@@ -1761,46 +1889,6 @@ function doPost(e) {
         </div>
       </div>
 
-      <!-- One-Tap Phone Pairing (Link / QR for 2nd & 3rd Phones) -->
-      <div class="section-card">
-        <div class="section-title" style="margin-bottom:8px;">
-          <svg width="20" height="20" fill="none" stroke="var(--status-ok)" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          ربط جوال ثانٍ أو ثالث بلمسة واحدة
-        </div>
-        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
-          بعد تفعيل الربط على الجوال الأول، انسخ <strong>كود الربط السريع</strong> وأرسله لجوالك الثاني (عبر واتساب مثلاً) والصقه هنا ليتم ربطه فوراً:
-        </p>
-        <div class="action-grid" style="margin-bottom:10px;">
-          <button type="button" class="btn-secondary" onclick="copyPairingCode()" style="border-color:var(--status-ok); color:var(--status-ok);">
-            📤 نسخ كود الربط السريع للجوال الثاني
-          </button>
-          <button type="button" class="btn-secondary" onclick="pastePairingCode()" style="border-color:var(--accent-steel); color:var(--accent-steel);">
-            📥 لصق كود الربط القادم من جوال آخر
-          </button>
-        </div>
-      </div>
-
-      <!-- Android Home Screen Install Guide -->
-      <div class="section-card">
-        <div class="section-header" style="margin-bottom:8px;">
-          <div class="section-title">
-            <svg width="20" height="20" fill="none" stroke="var(--accent-steel)" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            تثبيت أيقونة التطبيق على شاشة الأندرويد
-          </div>
-          <button type="button" class="mini-btn" onclick="triggerInstall()" style="background:var(--accent-steel); color:#07131d; border:none;">تثبيت الآن</button>
-        </div>
-        <div class="step-guide">
-          <div class="guide-step">
-            <span class="step-num">1</span>
-            <div>افتح هذا الملف على كل جوال أندرويد عبر متصفح <strong>Google Chrome</strong>.</div>
-          </div>
-          <div class="guide-step">
-            <span class="step-num">2</span>
-            <div>اضغط على قائمة المتصفح <strong>( ⋮ )</strong> ثم اختر <strong>"الإضافة إلى الشاشة الرئيسية"</strong> أو <strong>"تثبيت التطبيق"</strong> ليظهر بشعار <strong>ONBBS MACHINE SHOP</strong>.</div>
-          </div>
-        </div>
-      </div>
-
       <!-- Excel / CSV Sync -->
       <div class="section-card">
         <div class="section-title" style="margin-bottom:10px;">
@@ -1826,13 +1914,13 @@ function doPost(e) {
     </section>
   </main>
 
-  <!-- Floating Action Button -->
+  <!-- App Floating Action Button -->
   <button class="fab" id="main-fab" onclick="handleMainFab()">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     <span id="main-fab-label">إضافة صنف</span>
   </button>
 
-  <!-- Android Bottom Navigation -->
+  <!-- App Bottom Navigation Bar -->
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-inventory" onclick="switchTab('inventory')">
       <span class="nav-pill">
@@ -1855,7 +1943,7 @@ function doPost(e) {
     </button>
     <button class="nav-item" id="nav-tools" onclick="switchTab('tools')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </span>
       <span>برامج الورشة</span>
     </button>
@@ -2096,6 +2184,7 @@ function doPost(e) {
     let activityLogs = [];
     let lastUpdatedAt = 0;
     let paymentFilter = "all";
+    let inventoryViewMode = "cards"; // 'cards' | 'compact' | 'grid' | 'table'
     let dhMode = "divisions";
     let dhSelectedCircle = 18;
     let pendingPush = false;
@@ -2837,9 +2926,21 @@ function doPost(e) {
       container.innerHTML = html;
     }
 
+    function setInventoryViewMode(mode) {
+      inventoryViewMode = mode;
+      try { localStorage.setItem("onbbs_inv_view_mode", mode); } catch (e) {}
+      ["cards", "compact", "grid", "table"].forEach(m => {
+        const btn = document.getElementById(`vbtn-${m}`);
+        if (btn) btn.classList.toggle("active", m === mode);
+      });
+      renderInventoryList();
+    }
+
     function renderInventoryList() {
       const container = document.getElementById("inventory-list");
       const q = searchQuery.toLowerCase().trim();
+
+      container.classList.toggle("view-grid", inventoryViewMode === "grid");
 
       const filtered = inventory.map((item, idx) => ({ item, idx })).filter(({ item }) => {
         if (selectedCategory !== "الكل") {
@@ -2856,6 +2957,7 @@ function doPost(e) {
       });
 
       if (filtered.length === 0) {
+        container.classList.remove("view-grid");
         container.innerHTML = `<div class="empty-state">
           <div style="font-size:32px; margin-bottom:8px;">📦</div>
           <div style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">لا توجد أصناف مطابقة للبحث أو التصفية</div>
@@ -2864,6 +2966,123 @@ function doPost(e) {
         return;
       }
 
+      // MODE 2: COMPACT ROWS
+      if (inventoryViewMode === "compact") {
+        container.innerHTML = filtered.map(({ item, idx }) => {
+          const st = getStockStatus(item);
+          const maint = isMaintenanceNeeded(item);
+          return `
+            <div class="compact-row ${st.cardCls}">
+              <div style="min-width:0; flex:1;" onclick="openItemModal(${idx})">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="item-code" style="font-size:10.5px; padding:2px 6px;">${escapeHtml(item.code)}</span>
+                  <strong style="font-size:13.5px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.name)}</strong>
+                </div>
+                <div style="font-size:11px; color:var(--text-secondary); margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="status-pill ${st.cls}" style="font-size:10px; padding:1px 7px;">${st.label}</span>
+                  ${maint ? `<span class="status-pill pill-maint" style="font-size:10px; padding:1px 7px;">⚙ ${escapeHtml(item.condition)}</span>` : ""}
+                  ${item.location ? `<span>📍 ${escapeHtml(item.location)}</span>` : ""}
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                <div class="compact-stepper">
+                  <button class="compact-step-btn step-minus" onclick="adjustQty(${idx}, -1)">−</button>
+                  <span style="min-width:26px; text-align:center; font-weight:800; font-size:13.5px;">${item.qty}</span>
+                  <button class="compact-step-btn step-plus" onclick="adjustQty(${idx}, 1)">+</button>
+                </div>
+                <button class="mini-btn" onclick="openItemModal(${idx})" style="padding:6px 8px;">✎</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+        return;
+      }
+
+      // MODE 3: 2-COLUMN GRID
+      if (inventoryViewMode === "grid") {
+        container.innerHTML = filtered.map(({ item, idx }) => {
+          const st = getStockStatus(item);
+          const maint = isMaintenanceNeeded(item);
+          return `
+            <article class="grid-card ${st.cardCls}">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:5px;">
+                  <span class="item-code" style="font-size:10.5px; padding:2px 6px;">${escapeHtml(item.code)}</span>
+                  <span class="status-pill ${st.cls}" style="font-size:10px; padding:2px 6px;">${item.qty === 0 ? "نفذ" : (st.isLow ? "منخفض" : "متوفر")}</span>
+                </div>
+                <div style="font-size:13.5px; font-weight:700; color:var(--text-primary); line-height:1.35; margin-bottom:4px;">${escapeHtml(item.name)}</div>
+                <div style="font-size:11px; color:var(--text-secondary);">
+                  ${item.location ? `📍 ${escapeHtml(item.location)}` : escapeHtml(item.category)}
+                  ${maint ? `<div style="color:var(--status-maint); margin-top:2px;">⚙ ${escapeHtml(item.condition)}</div>` : ""}
+                </div>
+              </div>
+              <div style="padding-top:6px; border-top:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; gap:4px;">
+                <div class="compact-stepper">
+                  <button class="compact-step-btn step-minus" style="width:24px; height:24px;" onclick="adjustQty(${idx}, -1)">−</button>
+                  <span style="min-width:22px; text-align:center; font-weight:800; font-size:13px;">${item.qty}</span>
+                  <button class="compact-step-btn step-plus" style="width:24px; height:24px;" onclick="adjustQty(${idx}, 1)">+</button>
+                </div>
+                <button class="mini-btn" onclick="openItemModal(${idx})" style="padding:4px 7px; font-size:11px;">تعديل</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+        return;
+      }
+
+      // MODE 4: STRUCTURED TABLE
+      if (inventoryViewMode === "table") {
+        container.innerHTML = `
+          <div class="table-scroll" style="background:var(--bg-surface);">
+            <table>
+              <thead>
+                <tr>
+                  <th>الرمز</th>
+                  <th>اسم الغرض</th>
+                  <th>الكمية</th>
+                  <th>الحالة</th>
+                  <th>الموقع</th>
+                  <th>التصنيف</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filtered.map(({ item, idx }) => {
+                  const st = getStockStatus(item);
+                  const maint = isMaintenanceNeeded(item);
+                  return `
+                    <tr>
+                      <td><span class="item-code">${escapeHtml(item.code)}</span></td>
+                      <td style="font-weight:700; min-width:140px;">${escapeHtml(item.name)}</td>
+                      <td>
+                        <div class="compact-stepper">
+                          <button class="compact-step-btn step-minus" style="width:25px; height:25px;" onclick="adjustQty(${idx}, -1)">−</button>
+                          <span style="min-width:26px; text-align:center; font-weight:800;">${item.qty}</span>
+                          <button class="compact-step-btn step-plus" style="width:25px; height:25px;" onclick="adjustQty(${idx}, 1)">+</button>
+                        </div>
+                      </td>
+                      <td style="white-space:nowrap;">
+                        <span class="status-pill ${st.cls}">${st.label}</span>
+                        ${maint ? `<span class="status-pill pill-maint" style="margin-right:4px;">⚙ ${escapeHtml(item.condition)}</span>` : ""}
+                      </td>
+                      <td style="white-space:nowrap; color:var(--text-secondary);">${escapeHtml(item.location || "-")}</td>
+                      <td style="color:var(--text-secondary);">${escapeHtml(item.category)}</td>
+                      <td style="white-space:nowrap;">
+                        <button class="mini-btn" onclick="openQRModal(${idx})" style="padding:4px 7px;">QR</button>
+                        <button class="mini-btn" onclick="openItemModal(${idx})" style="padding:4px 7px;">تعديل</button>
+                        <button class="mini-btn" onclick="deleteItem(${idx})" style="padding:4px 7px; color:#f87171;">حذف</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      // MODE 1 (DEFAULT): DETAILED CARDS
       container.innerHTML = filtered.map(({ item, idx }) => {
         const st = getStockStatus(item);
         const maint = isMaintenanceNeeded(item);
@@ -3229,18 +3448,21 @@ function doPost(e) {
       document.querySelectorAll(".tab-page").forEach(el => el.classList.remove("active"));
       document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
       document.getElementById(`tab-${tabName}`).classList.add("active");
-      document.getElementById(`nav-${tabName}`).classList.add("active");
+      const navEl = document.getElementById(`nav-${tabName}`);
+      if (navEl) navEl.classList.add("active");
 
       const fab = document.getElementById("main-fab");
       const fabLabel = document.getElementById("main-fab-label");
-      if (tabName === "inventory") {
-        fab.style.display = "flex";
-        fabLabel.textContent = "إضافة صنف";
-      } else if (tabName === "payments") {
-        fab.style.display = "flex";
-        fabLabel.textContent = "إضافة دفعة / قسط";
-      } else {
-        fab.style.display = "none";
+      if (fab && fabLabel) {
+        if (tabName === "inventory") {
+          fab.style.display = "flex";
+          fabLabel.textContent = "إضافة صنف";
+        } else if (tabName === "payments") {
+          fab.style.display = "flex";
+          fabLabel.textContent = "إضافة دفعة / قسط";
+        } else {
+          fab.style.display = "none";
+        }
       }
 
       if (tabName === "tools") {
@@ -3412,6 +3634,7 @@ function doPost(e) {
 
     function savePayment(e) {
       e.preventDefault();
+      if (!Array.isArray(payments)) payments = [];
       const idx = parseInt(document.getElementById("pay-edit-index").value, 10);
       const record = {
         id: idx >= 0 ? payments[idx].id : ("PAY-" + Date.now().toString().slice(-5)),
@@ -4254,7 +4477,8 @@ function doPost(e) {
           short_name: "ONBBS مخزون",
           description: "نظام إدارة مخزون ورشة ONBBS MACHINE SHOP المتزامن بين الجوالات",
           start_url: ".",
-          display: "standalone",
+          display: "fullscreen",
+          display_override: ["fullscreen", "standalone"],
           orientation: "portrait",
           background_color: "#0f1115",
           theme_color: "#121417",
@@ -4267,6 +4491,105 @@ function doPost(e) {
         document.getElementById("dynamic-manifest").setAttribute("href", URL.createObjectURL(blob));
       } catch (e) {}
     }
+
+    // Immersive Fullscreen Mode: Hides the phone's own bottom system navigation bar while using the app
+    let autoImmersiveEnabled = true;
+    try {
+      const savedImm = localStorage.getItem("onbbs_auto_immersive");
+      if (savedImm === "0") autoImmersiveEnabled = false;
+    } catch (e) {}
+
+    function isAppInFullscreen() {
+      return Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement
+      );
+    }
+
+    function updateFullscreenButtonUI() {
+      const btn = document.getElementById("btn-fullscreen");
+      const svg = document.getElementById("fs-icon-svg");
+      if (!btn || !svg) return;
+      const active = isAppInFullscreen();
+      btn.classList.toggle("is-fullscreen", active);
+      if (active) {
+        btn.title = "إظهار أزرار الجوال السفلية (إنهاء ملء الشاشة)";
+        svg.innerHTML = '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/>';
+      } else {
+        btn.title = "إخفاء أزرار الجوال السفلية (وضع ملء الشاشة)";
+        svg.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+      }
+    }
+
+    async function enterAppFullscreen(silent = true) {
+      if (isAppInFullscreen()) {
+        updateFullscreenButtonUI();
+        return true;
+      }
+      const el = document.documentElement;
+      try {
+        if (el.requestFullscreen) {
+          await el.requestFullscreen({ navigationUI: "hide" });
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+          el.msRequestFullscreen();
+        }
+        updateFullscreenButtonUI();
+        return true;
+      } catch (err) {
+        if (!silent) {
+          showToast("لإخفاء أزرار الجوال تلقائياً: ثبّت التطبيق على الشاشة الرئيسية من قائمة Chrome (⋮)");
+        }
+        return false;
+      }
+    }
+
+    async function exitAppFullscreen() {
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      } catch (e) {}
+      updateFullscreenButtonUI();
+    }
+
+    async function toggleAppFullscreen() {
+      if (isAppInFullscreen()) {
+        autoImmersiveEnabled = false;
+        try { localStorage.setItem("onbbs_auto_immersive", "0"); } catch (e) {}
+        await exitAppFullscreen();
+        showToast("تم إظهار أزرار الجوال السفلية");
+      } else {
+        autoImmersiveEnabled = true;
+        try { localStorage.setItem("onbbs_auto_immersive", "1"); } catch (e) {}
+        const ok = await enterAppFullscreen(false);
+        if (ok) {
+          showToast("تم إخفاء أزرار الجوال السفلية (ملء الشاشة) ✓");
+        }
+      }
+    }
+
+    document.addEventListener("fullscreenchange", updateFullscreenButtonUI);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenButtonUI);
+
+    // Automatically hide phone's bottom system bar on first tap/interaction inside the app
+    function handleFirstImmersiveGesture() {
+      if (autoImmersiveEnabled && !isAppInFullscreen()) {
+        enterAppFullscreen(true);
+      }
+    }
+    document.addEventListener("pointerdown", handleFirstImmersiveGesture, { passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        updateFullscreenButtonUI();
+      }
+    });
 
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
@@ -4287,6 +4610,14 @@ function doPost(e) {
     try {
       const savedPlates = localStorage.getItem("onbbs_dh_custom_plates");
       if (savedPlates) document.getElementById("dh-custom-plates").value = savedPlates;
+      const savedView = localStorage.getItem("onbbs_inv_view_mode");
+      if (savedView && ["cards", "compact", "grid", "table"].includes(savedView)) {
+        inventoryViewMode = savedView;
+        ["cards", "compact", "grid", "table"].forEach(m => {
+          const btn = document.getElementById(`vbtn-${m}`);
+          if (btn) btn.classList.toggle("active", m === savedView);
+        });
+      }
     } catch (e) {}
     loadLocalState();
     renderAll();
@@ -4312,18 +4643,7 @@ function doPost(e) {
       overflow: hidden !important;
     }
 
-    /* 6-item Bottom Nav compact fit */
-    .bottom-nav {
-      grid-template-columns: repeat(6, 1fr);
-    }
-    .nav-item {
-      font-size: 10px;
-      gap: 3px;
-    }
-    .nav-pill {
-      padding: 3px 8px;
-      position: relative;
-    }
+
     .nav-mini-badge {
       position: absolute;
       top: -2px;
@@ -4463,14 +4783,15 @@ function doPost(e) {
   <script>
     (function() {
       function cleanHostInjections() {
-        const appIds = new Set(["toast", "item-modal", "qr-modal"]);
+        const appIds = new Set(["toast", "item-modal", "qr-modal", "payment-modal"]);
         document.querySelectorAll("body > *").forEach(el => {
           const isMainContainer = el.tagName === "MAIN" && el.classList.contains("container");
           const isAppBar = el.tagName === "HEADER" && el.classList.contains("app-bar");
-          const isBottomNav = el.tagName === "NAV" && el.classList.contains("bottom-nav");
+          const isNav = el.tagName === "NAV" && (el.classList.contains("bottom-nav") || el.classList.contains("top-tabs-nav"));
+          const isModalBackdrop = el.classList.contains("modal-backdrop");
           const isFab = el.tagName === "BUTTON" && el.classList.contains("fab");
           const isScriptOrStyle = el.tagName === "SCRIPT" || el.tagName === "STYLE";
-          const isKnownAppEl = isMainContainer || isAppBar || isBottomNav || isFab || isScriptOrStyle || appIds.has(el.id);
+          const isKnownAppEl = isMainContainer || isAppBar || isNav || isModalBackdrop || isFab || isScriptOrStyle || appIds.has(el.id);
 
           if (!isKnownAppEl) {
             const txt = (el.innerText || "").toLowerCase();
