@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#121417" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -804,7 +804,7 @@
 
     .fab:active { transform: scale(0.94); }
 
-    /* App Bottom Navigation Bar (6-item compact fit) */
+    /* App Bottom Navigation Bar (7-item compact fit) */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -814,7 +814,7 @@
       background: #15181f;
       border-top: 1px solid var(--border-color);
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       z-index: 70;
       padding-bottom: env(safe-area-inset-bottom, 0px);
       box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.45);
@@ -829,17 +829,18 @@
       align-items: center;
       justify-content: center;
       gap: 3px;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
       font-family: inherit;
       cursor: pointer;
       position: relative;
+      padding: 0 1px;
     }
 
     .nav-item.active { color: var(--accent-steel); }
 
     .nav-pill {
-      padding: 3px 8px;
+      padding: 3px 6px;
       border-radius: 99px;
       display: flex;
       align-items: center;
@@ -847,6 +848,114 @@
       position: relative;
       transition: background 0.15s;
     }
+
+    /* Mobile Keyboard-Open Protection: Prevents soft keyboard from covering input fields */
+    body.keyboard-open {
+      padding-bottom: calc(220px + var(--kb-offset, 0px)) !important;
+    }
+    body.keyboard-open .bottom-nav,
+    body.keyboard-open .fab {
+      display: none !important;
+    }
+    body.keyboard-open .modal-backdrop.open {
+      height: var(--vvh, 100dvh);
+      bottom: auto;
+      align-items: flex-start;
+      padding: 8px 8px 0;
+    }
+    body.keyboard-open .modal-backdrop.open .modal-sheet {
+      max-height: calc(var(--vvh, 100dvh) - 12px);
+      border-radius: 18px;
+      padding-bottom: calc(160px + var(--kb-offset, 0px));
+    }
+
+    /* Calendar & Work Schedule Styles */
+    .cal-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .cal-month-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+    }
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .cal-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-day-cell {
+      aspect-ratio: 1 / 1.05;
+      min-height: 40px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      position: relative;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: all 0.14s ease;
+    }
+    .cal-day-cell.is-empty {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+    }
+    .cal-day-cell.is-today {
+      border-color: var(--accent-steel);
+      color: var(--accent-steel);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .cal-day-cell.is-selected {
+      background: var(--accent-steel-dark);
+      border-color: var(--accent-steel);
+      color: #fff;
+      box-shadow: 0 0 0 1px var(--accent-steel);
+    }
+    .cal-dots-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-height: 6px;
+    }
+    .cal-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+    .sched-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+    }
+    .sched-card.is-overdue { border-right: 4px solid var(--status-out); }
+    .sched-card.is-soon { border-right: 4px solid var(--status-low); }
+    .sched-card.is-progress { border-right: 4px solid var(--accent-steel); }
+    .sched-card.is-done { border-right: 4px solid var(--status-ok); opacity: 0.88; }
+    .sched-card.is-planned { border-right: 4px solid #6366f1; }
 
     .nav-item.active .nav-pill { background: rgba(56, 189, 248, 0.16); }
 
@@ -1504,6 +1613,19 @@
     <section id="tab-alerts" class="tab-page">
       <div class="section-card">
         <div class="section-header">
+          <div class="section-title" style="color:var(--accent-steel)">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            تذكير مواعيد بدء العمل وجدول الورشة
+          </div>
+          <button class="mini-btn" onclick="switchTab('calendar')" style="border-color:var(--accent-steel); color:var(--accent-steel);">
+            فتح التقويم ↗
+          </button>
+        </div>
+        <div class="item-list" id="schedule-alerts-list"></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
           <div class="section-title" style="color:var(--accent-gold)">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             تذكير المدفوعات والأقساط المستحقة
@@ -1561,6 +1683,72 @@
         </div>
         <div class="step-guide" id="activity-log-list"></div>
       </div>
+    </section>
+
+    <!-- TAB: CALENDAR & WORK START SCHEDULES / REMINDERS -->
+    <section id="tab-calendar" class="tab-page">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-items" onclick="jumpToCalendarToday()">
+          <div class="kpi-label">مواعيد اليوم</div>
+          <div class="kpi-value" id="cal-kpi-today" style="color:var(--accent-steel)">0</div>
+          <div class="kpi-hint">عرض جدول اليوم</div>
+        </div>
+        <div class="kpi-card kpi-low" onclick="setScheduleFilter('due')">
+          <div class="kpi-label">قادم قريباً / متأخر</div>
+          <div class="kpi-value" id="cal-kpi-due" style="color:var(--status-out)">0</div>
+          <div class="kpi-hint">تذكيرات نشطة</div>
+        </div>
+        <div class="kpi-card kpi-maint" onclick="setScheduleFilter('in_progress')">
+          <div class="kpi-label">قيد التنفيذ حالياً</div>
+          <div class="kpi-value" id="cal-kpi-progress" style="color:var(--accent-gold)">0</div>
+          <div class="kpi-hint">أعمال جارية</div>
+        </div>
+        <div class="kpi-card kpi-qty" onclick="setScheduleFilter('completed')">
+          <div class="kpi-label">أعمال منجزة</div>
+          <div class="kpi-value" id="cal-kpi-done" style="color:var(--status-ok)">0</div>
+          <div class="kpi-hint">تم الانتهاء ✓</div>
+        </div>
+      </div>
+
+      <!-- Interactive Monthly Calendar -->
+      <div class="section-card" style="border-color:#0284c7;">
+        <div class="cal-header-bar">
+          <div style="display:flex; gap:5px;">
+            <button type="button" class="mini-btn" onclick="changeCalendarMonth(-1)" title="الشهر السابق">◀</button>
+            <button type="button" class="mini-btn" onclick="jumpToCalendarToday()" style="color:var(--accent-steel); border-color:var(--accent-steel);">اليوم</button>
+          </div>
+          <div class="cal-month-title" id="cal-month-label">نوفمبر 2026</div>
+          <button type="button" class="mini-btn" onclick="changeCalendarMonth(1)" title="الشهر التالي">▶</button>
+        </div>
+
+        <div class="cal-weekdays">
+          <div>الأحد</div>
+          <div>الإثنين</div>
+          <div>الثلاثاء</div>
+          <div>الأربعاء</div>
+          <div>الخميس</div>
+          <div>الجمعة</div>
+          <div>السبت</div>
+        </div>
+        <div class="cal-days-grid" id="cal-days-grid"></div>
+
+        <div id="cal-selected-bar" style="display:none; margin-top:10px; padding-top:9px; border-top:1px solid var(--border-color); align-items:center; justify-content:space-between; gap:8px;">
+          <span style="font-size:12px; color:var(--accent-steel); font-weight:700;" id="cal-selected-text"></span>
+          <button type="button" class="mini-btn" onclick="clearCalendarDateFilter()">عرض كل الأيام ✕</button>
+        </div>
+      </div>
+
+      <!-- Schedule Filter Chips -->
+      <div class="chips-row" id="schedule-filter-chips">
+        <button class="chip active" id="schip-all" onclick="setScheduleFilter('all')">الكل</button>
+        <button class="chip" id="schip-due" onclick="setScheduleFilter('due')">تنبيهات / قريب البدء</button>
+        <button class="chip" id="schip-planned" onclick="setScheduleFilter('planned')">مجدول</button>
+        <button class="chip" id="schip-in_progress" onclick="setScheduleFilter('in_progress')">قيد التنفيذ ⚙</button>
+        <button class="chip" id="schip-completed" onclick="setScheduleFilter('completed')">مكتمل ✓</button>
+      </div>
+
+      <!-- Schedules & Reminders List -->
+      <div class="item-list" id="schedules-list"></div>
     </section>
 
     <!-- TAB 5: MONTHLY PAYMENTS & INSTALLMENTS REMINDERS -->
@@ -1773,7 +1961,7 @@ function doGet(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
     const lastRow = Math.max(sheet.getLastRow(), 10);
-    const values = sheet.getRange(10, 2, lastRow - 9, 9).getValues(); // B10:J
+    const values = sheet.getRange(10, 2, Math.max(1, lastRow - 9), 9).getValues();
     const items = [];
     for (let i = 0; i &lt; values.length; i++) {
       const r = values[i];
@@ -1804,23 +1992,29 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JAVASCRIPT);
     }
     return ContentService.createTextOutput(payload).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
   } finally {
-    lock.releaseLock();
+    try { lock.releaseLock(); } catch (e2) {}
   }
 }
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.tryLock(10000);
   try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, empty: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     const data = JSON.parse(e.postData.contents);
     const items = data.items || [];
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
 
-    // مسح الصفوف القديمة في جدول الأصناف B10:J
     const maxClear = Math.max(sheet.getLastRow(), 30);
-    sheet.getRange(10, 2, maxClear - 9, 9).clearContent();
+    sheet.getRange(10, 2, Math.max(1, maxClear - 9), 9).clearContent();
 
     if (items.length &gt; 0) {
       const rows = items.map(it =&gt; {
@@ -1832,7 +2026,6 @@ function doPost(e) {
       sheet.getRange(10, 2, rows.length, 9).setValues(rows);
     }
 
-    // تحديث جدول ملخص التصنيفات الديناميكي في L10:N تلقائياً
     const catMap = {};
     items.forEach(it =&gt; {
       const cats = String(it.category || "غير مصنف").split(/[,،]+/).map(s =&gt; s.trim()).filter(Boolean);
@@ -1842,7 +2035,7 @@ function doPost(e) {
         catMap[c].qty += (Number(it.qty) || 0);
       });
     });
-    sheet.getRange(10, 12, maxClear - 9, 3).clearContent();
+    sheet.getRange(10, 12, Math.max(1, maxClear - 9), 3).clearContent();
     const catRows = Object.keys(catMap).map(k =&gt; [k, catMap[k].count, catMap[k].qty]);
     if (catRows.length &gt; 0) {
       sheet.getRange(10, 12, catRows.length, 3).setValues(catRows);
@@ -1855,8 +2048,11 @@ function doPost(e) {
     }));
 
     return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
   } finally {
-    lock.releaseLock();
+    try { lock.releaseLock(); } catch (e2) {}
   }
 }</div>
                 </div>
@@ -1924,39 +2120,46 @@ function doPost(e) {
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-inventory" onclick="switchTab('inventory')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       </span>
       <span>المخزون</span>
     </button>
     <button class="nav-item" id="nav-analytics" onclick="switchTab('analytics')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </span>
       <span>الرسوم</span>
     </button>
+    <button class="nav-item" id="nav-calendar" onclick="switchTab('calendar')">
+      <span class="nav-pill">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="nav-mini-badge" id="nav-cal-badge">0</span>
+      </span>
+      <span>التقويم</span>
+    </button>
     <button class="nav-item" id="nav-payments" onclick="switchTab('payments')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         <span class="nav-mini-badge" id="nav-pay-badge">0</span>
       </span>
       <span>المدفوعات</span>
     </button>
     <button class="nav-item" id="nav-tools" onclick="switchTab('tools')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </span>
-      <span>برامج الورشة</span>
+      <span>البرامج</span>
     </button>
     <button class="nav-item" id="nav-alerts" onclick="switchTab('alerts')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="nav-mini-badge" id="nav-alert-badge">0</span>
       </span>
       <span>التنبيهات</span>
     </button>
     <button class="nav-item" id="nav-sync" onclick="switchTab('sync')">
       <span class="nav-pill">
-        <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       </span>
       <span>الربط</span>
     </button>
@@ -2021,6 +2224,95 @@ function doPost(e) {
         </div>
 
         <button type="submit" class="btn-primary">حفظ ومزامنة مع جميع الجوالات</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add / Edit Work Schedule / Reminder Modal -->
+  <div class="modal-backdrop" id="schedule-modal" onclick="closeModalOnBackdrop(event, 'schedule-modal')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 id="sched-modal-title" style="font-size:17px; font-weight:800;">إضافة موعد بدء عمل / تذكير</h3>
+        <button class="mini-btn" onclick="closeModal('schedule-modal')">✕ إغلاق</button>
+      </div>
+      <form id="schedule-form" onsubmit="saveSchedule(event)">
+        <input type="hidden" id="sched-edit-index" value="-1" />
+        <div class="form-group">
+          <label class="form-label">عنوان العمل أو الموعد *</label>
+          <input type="text" id="s-title" class="form-control" required placeholder="مثال: بدء خراطة عمود طرمبة / صب قاعدة الرافعة / صيانة المخرطة" />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">نوع الموعد *</label>
+            <select id="s-category" class="form-control">
+              <option value="بدء عمل جديد">بدء عمل جديد</option>
+              <option value="موعد تسليم">موعد تسليم</option>
+              <option value="صيانة دورية">صيانة دورية</option>
+              <option value="متابعة طلبية / شحن">متابعة طلبية / شحن</option>
+              <option value="تذكير عام">تذكير عام</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">الأولوية *</label>
+            <select id="s-priority" class="form-control">
+              <option value="normal">عادي</option>
+              <option value="high">مهم</option>
+              <option value="urgent">عاجل جداً</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">تاريخ بدء العمل / الموعد *</label>
+            <input type="date" id="s-start-date" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">وقت البدء (اختياري)</label>
+            <input type="time" id="s-start-time" class="form-control" value="08:00" />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">تاريخ الانتهاء المتوقع (اختياري)</label>
+            <input type="date" id="s-end-date" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">التذكير المسبق</label>
+            <select id="s-remind-days" class="form-control">
+              <option value="0">في نفس يوم البدء</option>
+              <option value="1" selected>قبل الموعد بـ 1 يوم</option>
+              <option value="2">قبل الموعد بـ يومين</option>
+              <option value="3">قبل الموعد بـ 3 أيام</option>
+              <option value="7">قبل الموعد بأسبوع</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">الآلة / الموقع / العميل</label>
+            <input type="text" id="s-machine" class="form-control" placeholder="مثال: مخرطة CS6150B / الحوش / عميل" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">حالة التنفيذ</label>
+            <select id="s-status" class="form-control">
+              <option value="planned">مجدول (بانتظار البدء)</option>
+              <option value="in_progress">قيد التنفيذ حالياً</option>
+              <option value="completed">مكتمل ✓</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">تفاصيل وملاحظات العمل</label>
+          <input type="text" id="s-notes" class="form-control" placeholder="المقاسات، الخامات المطلوبة، أو خطوات البدء..." />
+        </div>
+
+        <button type="submit" class="btn-primary">حفظ في التقويم ومزامنة الجوالات</button>
       </form>
     </div>
   </div>
@@ -2180,10 +2472,15 @@ function doPost(e) {
 
     let inventory = [];
     let payments = [];
-    let acknowledgedAlerts = {}; // { alertSig: { label, ackBy, ackAt } }
+    let schedules = [];
+    let acknowledgedAlerts = {}; // { safeKey: { label, ackBy, ackAt } }
     let activityLogs = [];
     let lastUpdatedAt = 0;
     let paymentFilter = "all";
+    let scheduleFilter = "all";
+    let calViewYear = new Date().getFullYear();
+    let calViewMonth = new Date().getMonth(); // 0..11
+    let calSelectedDate = ""; // "" means all days in current filter
     let inventoryViewMode = "cards"; // 'cards' | 'compact' | 'grid' | 'table'
     let dhMode = "divisions";
     let dhSelectedCircle = 18;
@@ -2197,6 +2494,32 @@ function doPost(e) {
     let firebaseStream = null;
     let isSyncingNow = false;
 
+    // Sanitize keys for Firebase Realtime Database (forbids . # $ / [ ])
+    function sanitizeFirebaseKey(rawKey) {
+      return String(rawKey || "key").replace(/[.#$\/\[\]\s]+/g, "_");
+    }
+
+    function sanitizeAcknowledgedAlerts(obj) {
+      const clean = {};
+      if (!obj || typeof obj !== "object") return clean;
+      Object.keys(obj).forEach(k => {
+        const sk = sanitizeFirebaseKey(k);
+        if (obj[k] && typeof obj[k] === "object") {
+          clean[sk] = obj[k];
+        }
+      });
+      return clean;
+    }
+
+    function getCleanFirebaseEndpoint() {
+      let base = String(syncConfig.firebaseUrl || "").trim();
+      base = base.replace(/\/+\.json$/i, "").replace(/\.json$/i, "").replace(/\/+$/, "");
+      if (!base) return "";
+      if (!/^https?:\/\//i.test(base)) base = "https://" + base;
+      const room = sanitizeFirebaseKey(syncConfig.firebaseRoom || "onbbs_main_workshop");
+      return `${base}/${room}.json`;
+    }
+
     let syncConfig = {
       enabled: false,
       provider: "firebase", // 'firebase' | 'sheets'
@@ -2205,6 +2528,39 @@ function doPost(e) {
       firebaseRoom: "onbbs_main_workshop",
       deviceName: "جوال " + Math.floor(100 + Math.random() * 899)
     };
+
+    function getDefaultSchedules() {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const in2Days = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
+      return [
+        {
+          id: "SCH-101",
+          title: "بدء تجهيز ومعايرة المخرطة الرئيسية",
+          category: "بدء عمل جديد",
+          priority: "high",
+          startDate: todayStr,
+          startTime: "08:30",
+          endDate: "",
+          remindDays: 1,
+          machine: "ورشة الخراطة",
+          status: "planned",
+          notes: "فحص التزييت ودقة الظرف قبل بدء التشغيل"
+        },
+        {
+          id: "SCH-102",
+          title: "صيانة دورية وفحص الفريزة",
+          category: "صيانة دورية",
+          priority: "normal",
+          startDate: in2Days,
+          startTime: "10:00",
+          endDate: "",
+          remindDays: 2,
+          machine: "فريزة M5W",
+          status: "planned",
+          notes: "تنظيف مجاري التبريد وفحص العدة"
+        }
+      ];
+    }
 
     function loadLocalState() {
       try {
@@ -2230,7 +2586,8 @@ function doPost(e) {
           if (parsed && Array.isArray(parsed.items)) {
             inventory = parsed.items;
             payments = Array.isArray(parsed.payments) ? parsed.payments : getDefaultPayments();
-            acknowledgedAlerts = (parsed.acknowledgedAlerts && typeof parsed.acknowledgedAlerts === "object") ? parsed.acknowledgedAlerts : {};
+            schedules = Array.isArray(parsed.schedules) ? parsed.schedules : getDefaultSchedules();
+            acknowledgedAlerts = sanitizeAcknowledgedAlerts(parsed.acknowledgedAlerts);
             activityLogs = parsed.logs || [];
             lastUpdatedAt = parsed.updatedAt || 0;
             pendingPush = Boolean(parsed.pendingPush);
@@ -2241,6 +2598,7 @@ function doPost(e) {
 
       inventory = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
       payments = getDefaultPayments();
+      schedules = getDefaultSchedules();
       acknowledgedAlerts = {};
       lastUpdatedAt = Date.now();
       saveLocalOnly();
@@ -2282,9 +2640,11 @@ function doPost(e) {
 
     function saveLocalOnly() {
       try {
+        acknowledgedAlerts = sanitizeAcknowledgedAlerts(acknowledgedAlerts);
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           items: inventory,
           payments: payments,
+          schedules: schedules,
           acknowledgedAlerts: acknowledgedAlerts,
           logs: activityLogs.slice(0, 30),
           updatedAt: lastUpdatedAt,
@@ -2353,39 +2713,60 @@ function doPost(e) {
       if (!quiet) updateSyncStatusUI("syncing", "جاري مزامنة الجوالات...");
 
       try {
+        acknowledgedAlerts = sanitizeAcknowledgedAlerts(acknowledgedAlerts);
         if (syncConfig.provider === "firebase" && syncConfig.firebaseUrl) {
-          const baseUrl = syncConfig.firebaseUrl.replace(/\/+$/, "");
-          const room = encodeURIComponent(syncConfig.firebaseRoom || "onbbs_main_workshop");
-          const endpoint = `${baseUrl}/${room}.json`;
+          const endpoint = getCleanFirebaseEndpoint();
+          if (!endpoint) throw new Error("Invalid Firebase URL");
           const categoriesSummary = computeDynamicCategories();
-          const res = await fetchWithRetry(endpoint, {
+          const payloadObj = {
+            items: inventory,
+            payments: payments,
+            schedules: schedules,
+            acknowledgedAlerts: acknowledgedAlerts,
+            categories: categoriesSummary,
+            chartMode: chartMode,
+            logs: activityLogs.slice(0, 25),
+            updatedAt: lastUpdatedAt,
+            updatedBy: syncConfig.deviceName || "جوال",
+            deviceName: syncConfig.deviceName || "جوال"
+          };
+          let res = await fetchWithRetry(endpoint, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              items: inventory,
-              payments: payments,
-              acknowledgedAlerts: acknowledgedAlerts,
-              categories: categoriesSummary,
-              chartMode: chartMode,
-              logs: activityLogs,
-              updatedAt: lastUpdatedAt,
-              updatedBy: syncConfig.deviceName,
-              deviceName: syncConfig.deviceName
-            })
+            body: JSON.stringify(payloadObj)
           }, 2, 700);
-          if (!res.ok) throw new Error("Firebase HTTP " + res.status);
+          if (!res.ok) {
+            // Fallback to PATCH if PUT encountered transient 500/400
+            res = await fetchWithRetry(endpoint, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payloadObj)
+            }, 1, 700);
+          }
+          if (!res.ok) throw new Error("Firebase sync deferred");
         } else if (syncConfig.provider === "sheets" && syncConfig.sheetsUrl) {
-          const res = await fetchWithRetry(syncConfig.sheetsUrl.trim(), {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              items: inventory,
-              logs: activityLogs,
-              updatedAt: lastUpdatedAt,
-              updatedBy: syncConfig.deviceName
-            })
-          }, 2, 800);
-          if (!res.ok) throw new Error("Sheets HTTP " + res.status);
+          const sheetsBody = JSON.stringify({
+            items: inventory,
+            logs: activityLogs.slice(0, 25),
+            updatedAt: lastUpdatedAt,
+            updatedBy: syncConfig.deviceName || "جوال"
+          });
+          try {
+            const res = await fetchWithRetry(syncConfig.sheetsUrl.trim(), {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: sheetsBody
+            }, 2, 800);
+            if (!res.ok) throw new Error("Sheets redirect fallback");
+          } catch (postErr) {
+            // Fallback for Google Apps Script 302 redirect CORS/500 quirk on mobile WebViews
+            await fetch(syncConfig.sheetsUrl.trim(), {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: sheetsBody
+            });
+          }
         }
 
         pendingPush = false;
@@ -2394,8 +2775,8 @@ function doPost(e) {
         updateSyncStatusUI("synced", `مربوط ومتزامن • ${syncConfig.deviceName}`);
       } catch (err) {
         window._syncFailStreak = (window._syncFailStreak || 0) + 1;
-        updateSyncStatusUI("offline", "إعادة محاولة المزامنة تلقائياً...");
-        if (!quiet) showToast("مؤقتاً تعذر الإرسال — سيعاد المحاولة تلقائياً");
+        updateSyncStatusUI("offline", "محفوظ محلياً • جاري إعادة المزامنة...");
+        if (!quiet) showToast("تم الحفظ على الجوال • ستكتمل المزامنة تلقائياً");
       } finally {
         setSyncSpinner(false);
       }
@@ -2420,16 +2801,16 @@ function doPost(e) {
         let remoteData = null;
 
         if (syncConfig.provider === "firebase" && syncConfig.firebaseUrl) {
-          const baseUrl = syncConfig.firebaseUrl.replace(/\/+$/, "");
-          const room = encodeURIComponent(syncConfig.firebaseRoom || "onbbs_main_workshop");
-          const res = await fetchWithRetry(`${baseUrl}/${room}.json`, {}, 2, 650);
-          if (!res.ok) throw new Error("Firebase HTTP " + res.status);
+          const endpoint = getCleanFirebaseEndpoint();
+          if (!endpoint) throw new Error("Invalid Firebase URL");
+          const res = await fetchWithRetry(endpoint, {}, 2, 650);
+          if (!res.ok) throw new Error("Firebase pull deferred");
           remoteData = await res.json();
         } else if (syncConfig.provider === "sheets" && syncConfig.sheetsUrl) {
           const url = syncConfig.sheetsUrl.trim();
           const sep = url.includes("?") ? "&" : "?";
           const res = await fetchWithRetry(`${url}${sep}t=${Date.now()}`, {}, 2, 750);
-          if (!res.ok) throw new Error("Sheets HTTP " + res.status);
+          if (!res.ok) throw new Error("Sheets pull deferred");
           remoteData = await res.json();
         }
 
@@ -2449,8 +2830,9 @@ function doPost(e) {
               notes: ""
             }, it));
             if (Array.isArray(remoteData.payments)) payments = remoteData.payments;
+            if (Array.isArray(remoteData.schedules)) schedules = remoteData.schedules;
             if (remoteData.acknowledgedAlerts && typeof remoteData.acknowledgedAlerts === "object") {
-              acknowledgedAlerts = remoteData.acknowledgedAlerts;
+              acknowledgedAlerts = sanitizeAcknowledgedAlerts(remoteData.acknowledgedAlerts);
             }
             if (Array.isArray(remoteData.logs)) activityLogs = remoteData.logs;
             if (remoteData.chartMode === "qty" || remoteData.chartMode === "items") {
@@ -2461,21 +2843,20 @@ function doPost(e) {
             saveLocalOnly();
             renderAll();
             if (!silent || (window._bootCompletedAt && (Date.now() - window._bootCompletedAt > 2500))) {
-              showToast(`تم تحديث المعلمات من (${remoteData.updatedBy || "السحابة"}) ✓`);
+              showToast(`تم تحديث البيانات من (${remoteData.updatedBy || "السحابة"}) ✓`);
             }
           } else if (!silent) {
-            showToast("جميع المعلمات متطابقة ومحدثة ✓");
+            showToast("جميع البيانات متطابقة ومحدثة ✓");
           }
         }
         updateSyncStatusUI("synced", `مربوط ومتزامن • ${syncConfig.deviceName}`);
       } catch (err) {
         window._syncFailStreak = (window._syncFailStreak || 0) + 1;
-        // Only surface toast on explicit user action; keep startup & background silent with auto-retry
         if (!silent) {
-          showToast("تأخر مؤقت في الخادم — سيعاد المحاولة تلقائياً");
+          showToast("الخادم مشغول مؤقتاً — سيعاد المحاولة تلقائياً");
         }
-        if (window._syncFailStreak >= 2) {
-          updateSyncStatusUI("offline", "بانتظار استقرار الخادم...");
+        if (window._syncFailStreak >= 3) {
+          updateSyncStatusUI("offline", "محفوظ محلياً • إعادة المحاولة تلقائياً");
         }
       } finally {
         isSyncingNow = false;
@@ -2503,41 +2884,40 @@ function doPost(e) {
       // Sub-second SSE real-time stream if Firebase is used
       if (syncConfig.provider === "firebase" && syncConfig.firebaseUrl && window.EventSource) {
         try {
-          const baseUrl = syncConfig.firebaseUrl.replace(/\/+$/, "");
-          const room = encodeURIComponent(syncConfig.firebaseRoom || "onbbs_main_workshop");
-          firebaseStream = new EventSource(`${baseUrl}/${room}.json`);
-          const handleStream = (ev) => {
-            if (!ev.data || pendingPush) return;
-            try {
-              const parsed = JSON.parse(ev.data);
-              const payload = parsed.path === "/" ? parsed.data : null;
-              if (payload && Array.isArray(payload.items) && Number(payload.updatedAt) > lastUpdatedAt) {
-                inventory = payload.items;
-                if (Array.isArray(payload.payments)) payments = payload.payments;
-                if (payload.acknowledgedAlerts && typeof payload.acknowledgedAlerts === "object") {
-                  acknowledgedAlerts = payload.acknowledgedAlerts;
+          const endpoint = getCleanFirebaseEndpoint();
+          if (endpoint) {
+            firebaseStream = new EventSource(endpoint);
+            const handleStream = (ev) => {
+              if (!ev.data || pendingPush) return;
+              try {
+                const parsed = JSON.parse(ev.data);
+                const payload = parsed.path === "/" ? parsed.data : null;
+                if (payload && Array.isArray(payload.items) && Number(payload.updatedAt) > lastUpdatedAt) {
+                  inventory = payload.items;
+                  if (Array.isArray(payload.payments)) payments = payload.payments;
+                  if (Array.isArray(payload.schedules)) schedules = payload.schedules;
+                  if (payload.acknowledgedAlerts && typeof payload.acknowledgedAlerts === "object") {
+                    acknowledgedAlerts = sanitizeAcknowledgedAlerts(payload.acknowledgedAlerts);
+                  }
+                  activityLogs = payload.logs || activityLogs;
+                  lastUpdatedAt = Number(payload.updatedAt);
+                  window._syncFailStreak = 0;
+                  saveLocalOnly();
+                  renderAll();
+                  updateSyncStatusUI("synced", `مربوط ومتزامن • ${syncConfig.deviceName}`);
+                  if (window._bootCompletedAt && (Date.now() - window._bootCompletedAt > 2500)) {
+                    showToast(`تحديث لحظي من (${payload.updatedBy || "جوال آخر"})`);
+                  }
                 }
-                activityLogs = payload.logs || activityLogs;
-                lastUpdatedAt = Number(payload.updatedAt);
-                window._syncFailStreak = 0;
-                saveLocalOnly();
-                renderAll();
-                updateSyncStatusUI("synced", `مربوط ومتزامن • ${syncConfig.deviceName}`);
-                if (window._bootCompletedAt && (Date.now() - window._bootCompletedAt > 2500)) {
-                  showToast(`تحديث لحظي من (${payload.updatedBy || "جوال آخر"})`);
-                }
-              }
-            } catch (e) {}
-          };
-          firebaseStream.addEventListener("put", handleStream);
-          firebaseStream.addEventListener("patch", handleStream);
-          firebaseStream.onerror = () => {
-            // Silently let polling fallback handle transient SSE hiccups without spam
-          };
+              } catch (e) {}
+            };
+            firebaseStream.addEventListener("put", handleStream);
+            firebaseStream.addEventListener("patch", handleStream);
+            firebaseStream.onerror = () => {};
+          }
         } catch (e) {}
       }
 
-      // Polling safety net (6s for Sheets, 15s for Firebase)
       const intervalMs = syncConfig.provider === "sheets" ? 6000 : 15000;
       pollTimer = setInterval(() => pullFromCloud(true), intervalMs);
     }
@@ -2641,17 +3021,17 @@ function doPost(e) {
       let hasRemoteData = false;
       try {
         if (syncConfig.provider === "firebase" && syncConfig.firebaseUrl) {
-          const baseUrl = syncConfig.firebaseUrl.replace(/\/+$/, "");
-          const room = encodeURIComponent(syncConfig.firebaseRoom || "onbbs_main_workshop");
-          const checkRes = await fetchWithRetry(`${baseUrl}/${room}.json`, {}, 2, 650);
+          const endpoint = getCleanFirebaseEndpoint();
+          const checkRes = await fetchWithRetry(endpoint, {}, 2, 650);
           if (checkRes.ok) {
             const existing = await checkRes.json();
             if (existing && Array.isArray(existing.items) && existing.items.length > 0) {
               hasRemoteData = true;
               inventory = existing.items;
               if (Array.isArray(existing.payments)) payments = existing.payments;
+              if (Array.isArray(existing.schedules)) schedules = existing.schedules;
               if (existing.acknowledgedAlerts && typeof existing.acknowledgedAlerts === "object") {
-                acknowledgedAlerts = existing.acknowledgedAlerts;
+                acknowledgedAlerts = sanitizeAcknowledgedAlerts(existing.acknowledgedAlerts);
               }
               if (Array.isArray(existing.logs)) activityLogs = existing.logs;
               if (existing.chartMode === "qty" || existing.chartMode === "items") chartMode = existing.chartMode;
@@ -2796,6 +3176,7 @@ function doPost(e) {
       renderCategoryChips();
       renderInventoryList();
       renderAnalytics();
+      renderCalendarAndSchedules();
       renderPayments();
       renderAlerts();
     }
@@ -2831,12 +3212,13 @@ function doPost(e) {
       const activeLow = [];
       const activeMaint = [];
       const activePay = [];
+      const activeSched = [];
       const ackedList = [];
 
       inventory.forEach((item, idx) => {
         const st = getStockStatus(item);
         if (st.isLow) {
-          const sig = `low:${item.code}:${item.qty}:${item.minQty}`;
+          const sig = sanitizeFirebaseKey(`low_${item.code}_${item.qty}_${item.minQty}`);
           if (acknowledgedAlerts[sig]) {
             ackedList.push({ sig, title: `نقص مخزون: ${item.name} (${item.code})`, sub: `المتوفر: ${item.qty} / الحد: ${item.minQty}`, meta: acknowledgedAlerts[sig] });
           } else {
@@ -2844,7 +3226,7 @@ function doPost(e) {
           }
         }
         if (isMaintenanceNeeded(item)) {
-          const sig = `maint:${item.code}:${item.condition}`;
+          const sig = sanitizeFirebaseKey(`maint_${item.code}_${item.condition}`);
           if (acknowledgedAlerts[sig]) {
             ackedList.push({ sig, title: `صيانة: ${item.name} (${item.code})`, sub: `الحالة: ${item.condition}`, meta: acknowledgedAlerts[sig] });
           } else {
@@ -2856,7 +3238,7 @@ function doPost(e) {
       payments.forEach((p, idx) => {
         const info = getPaymentDueInfo(p);
         if (info.isAlert) {
-          const sig = `pay:${p.id}:${p.dueDate}:${p.paidInstallments || 0}`;
+          const sig = sanitizeFirebaseKey(`pay_${p.id}_${p.dueDate}_${p.paidInstallments || 0}`);
           if (acknowledgedAlerts[sig]) {
             ackedList.push({ sig, title: `دفعة مستحقة: ${p.title}`, sub: `${Number(p.amount).toLocaleString()} ر.س • ${info.label}`, meta: acknowledgedAlerts[sig] });
           } else {
@@ -2865,7 +3247,19 @@ function doPost(e) {
         }
       });
 
-      return { activeLow, activeMaint, activePay, ackedList };
+      schedules.forEach((s, idx) => {
+        const info = getScheduleDueInfo(s);
+        if (info.isAlert) {
+          const sig = sanitizeFirebaseKey(`sched_${s.id}_${s.startDate}_${s.status}`);
+          if (acknowledgedAlerts[sig]) {
+            ackedList.push({ sig, title: `موعد عمل: ${s.title}`, sub: `${s.startDate}${s.startTime ? " • " + s.startTime : ""} • ${info.label}`, meta: acknowledgedAlerts[sig] });
+          } else {
+            activeSched.push({ s, idx, info, sig });
+          }
+        }
+      });
+
+      return { activeLow, activeMaint, activePay, activeSched, ackedList };
     }
 
     function renderKPIs() {
@@ -2879,8 +3273,18 @@ function doPost(e) {
       document.getElementById("val-low-stock").textContent = lowCount;
       document.getElementById("val-maint-count").textContent = maintCount;
 
-      const { activeLow, activeMaint, activePay } = getAlertSignatures();
-      const totalUnackedAlerts = activeLow.length + activeMaint.length + activePay.length;
+      const { activeLow, activeMaint, activePay, activeSched } = getAlertSignatures();
+      const totalUnackedAlerts = activeLow.length + activeMaint.length + activePay.length + activeSched.length;
+
+      const navCalBadge = document.getElementById("nav-cal-badge");
+      if (navCalBadge) {
+        if (activeSched.length > 0) {
+          navCalBadge.style.display = "flex";
+          navCalBadge.textContent = activeSched.length;
+        } else {
+          navCalBadge.style.display = "none";
+        }
+      }
 
       const badge = document.getElementById("top-alert-badge");
       const navAlertBadge = document.getElementById("nav-alert-badge");
@@ -3246,7 +3650,36 @@ function doPost(e) {
     }
 
     function renderAlerts() {
-      const { activeLow, activeMaint, activePay, ackedList } = getAlertSignatures();
+      const { activeLow, activeMaint, activePay, activeSched, ackedList } = getAlertSignatures();
+
+      // 0. Work Schedule & Start Reminders Alerts
+      const schedAlertContainer = document.getElementById("schedule-alerts-list");
+      if (schedAlertContainer) {
+        if (activeSched.length === 0) {
+          schedAlertContainer.innerHTML = `<div style="color:var(--status-ok); font-size:13px; padding:8px;">✓ لا توجد مواعيد بدء عمل مستحقة أو متأخرة حالياً.</div>`;
+        } else {
+          schedAlertContainer.innerHTML = activeSched.map(({ s, idx, info, sig }) => `
+            <div class="sched-card ${info.cardCls}" style="padding:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <div>
+                  <div style="font-weight:800; font-size:14.5px;">${escapeHtml(s.title)} <span class="status-pill ${info.pillCls}">${info.label}</span></div>
+                  <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                    📅 البدء: <strong>${escapeHtml(s.startDate)}</strong> ${s.startTime ? `• ⏰ <strong>${escapeHtml(s.startTime)}</strong>` : ""} ${s.machine ? `| 🏭 ${escapeHtml(s.machine)}` : ""}
+                  </div>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button class="mini-btn" onclick="startScheduleWork(${idx})" style="background:rgba(56,189,248,0.16); border-color:var(--accent-steel); color:var(--accent-steel);">
+                    ▶ بدء العمل
+                  </button>
+                  <button class="ack-btn" onclick="acknowledgeAlert('${escapeHtmlAttr(sig)}', '${escapeHtmlAttr(s.title)}')">
+                    ✓ تم العلم
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join("");
+        }
+      }
 
       // 1. Payment Reminders Alerts
       const payAlertContainer = document.getElementById("payment-alerts-list");
@@ -3457,6 +3890,9 @@ function doPost(e) {
         if (tabName === "inventory") {
           fab.style.display = "flex";
           fabLabel.textContent = "إضافة صنف";
+        } else if (tabName === "calendar") {
+          fab.style.display = "flex";
+          fabLabel.textContent = "موعد / بدء عمل";
         } else if (tabName === "payments") {
           fab.style.display = "flex";
           fabLabel.textContent = "إضافة دفعة / قسط";
@@ -3467,6 +3903,8 @@ function doPost(e) {
 
       if (tabName === "tools") {
         calculateDividingHead();
+      } else if (tabName === "calendar") {
+        renderCalendarAndSchedules();
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -3474,6 +3912,8 @@ function doPost(e) {
     function handleMainFab() {
       if (currentActiveTab === "payments") {
         openPaymentModal();
+      } else if (currentActiveTab === "calendar") {
+        openScheduleModal(-1, calSelectedDate || "");
       } else {
         openItemModal();
       }
@@ -4605,7 +5045,488 @@ function doPost(e) {
       }
     }
 
+
+    // ==========================================
+    // MODULE: CALENDAR & WORK START SCHEDULES
+    // ==========================================
+    const ARABIC_MONTHS = [
+      "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+      "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+    ];
+
+    function getScheduleDueInfo(s) {
+      if (s.status === "completed") {
+        return {
+          state: "completed",
+          label: "مكتمل ✓",
+          pillCls: "pill-ok",
+          cardCls: "is-done",
+          dotColor: "#10b981",
+          isAlert: false,
+          daysDiff: 9999
+        };
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const parts = String(s.startDate || "").split("-").map(Number);
+      if (parts.length !== 3) {
+        return {
+          state: s.status === "in_progress" ? "in_progress" : "planned",
+          label: s.status === "in_progress" ? "قيد التنفيذ ⚙" : "مجدول",
+          pillCls: "pill-ok",
+          cardCls: s.status === "in_progress" ? "is-progress" : "is-planned",
+          dotColor: "#38bdf8",
+          isAlert: false,
+          daysDiff: 999
+        };
+      }
+
+      const target = new Date(parts[0], parts[1] - 1, parts[2]);
+      target.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((target - today) / 86400000);
+      const remindWindow = Number(s.remindDays ?? 1);
+
+      if (s.status === "in_progress") {
+        return {
+          state: "in_progress",
+          label: "قيد التنفيذ ⚙",
+          pillCls: "pill-maint",
+          cardCls: "is-progress",
+          dotColor: "#38bdf8",
+          isAlert: false,
+          daysDiff: diffDays
+        };
+      }
+
+      if (diffDays < 0) {
+        return {
+          state: "overdue",
+          label: `متأخر بـ ${Math.abs(diffDays)} يوم`,
+          pillCls: "pill-out",
+          cardCls: "is-overdue",
+          dotColor: "#ef4444",
+          isAlert: true,
+          daysDiff: diffDays
+        };
+      }
+      if (diffDays === 0) {
+        return {
+          state: "soon",
+          label: s.startTime ? `يبدأ اليوم • ${s.startTime}` : "يبدأ اليوم!",
+          pillCls: "pill-low",
+          cardCls: "is-soon",
+          dotColor: "#f59e0b",
+          isAlert: true,
+          daysDiff: 0
+        };
+      }
+      if (diffDays <= remindWindow) {
+        return {
+          state: "soon",
+          label: diffDays === 1 ? "يبدأ غداً" : `باقي ${diffDays} أيام`,
+          pillCls: "pill-low",
+          cardCls: "is-soon",
+          dotColor: "#f59e0b",
+          isAlert: true,
+          daysDiff: diffDays
+        };
+      }
+      return {
+        state: "planned",
+        label: `بعد ${diffDays} يوم`,
+        pillCls: "pill-ok",
+        cardCls: "is-planned",
+        dotColor: "#6366f1",
+        isAlert: false,
+        daysDiff: diffDays
+      };
+    }
+
+    function changeCalendarMonth(delta) {
+      calViewMonth += delta;
+      if (calViewMonth < 0) {
+        calViewMonth = 11;
+        calViewYear -= 1;
+      } else if (calViewMonth > 11) {
+        calViewMonth = 0;
+        calViewYear += 1;
+      }
+      renderCalendarGrid();
+    }
+
+    function jumpToCalendarToday() {
+      const now = new Date();
+      calViewYear = now.getFullYear();
+      calViewMonth = now.getMonth();
+      calSelectedDate = now.toISOString().slice(0, 10);
+      scheduleFilter = "all";
+      ["all", "due", "planned", "in_progress", "completed"].forEach(k => {
+        const el = document.getElementById(`schip-${k}`);
+        if (el) el.classList.toggle("active", k === "all");
+      });
+      renderCalendarAndSchedules();
+    }
+
+    function selectCalendarDate(dateStr) {
+      calSelectedDate = (calSelectedDate === dateStr) ? "" : dateStr;
+      renderCalendarAndSchedules();
+    }
+
+    function clearCalendarDateFilter() {
+      calSelectedDate = "";
+      renderCalendarAndSchedules();
+    }
+
+    function setScheduleFilter(f) {
+      scheduleFilter = f;
+      ["all", "due", "planned", "in_progress", "completed"].forEach(k => {
+        const el = document.getElementById(`schip-${k}`);
+        if (el) el.classList.toggle("active", k === f);
+      });
+      renderSchedulesList();
+    }
+
+    function renderCalendarAndSchedules() {
+      renderCalendarGrid();
+      renderSchedulesList();
+    }
+
+    function renderCalendarGrid() {
+      const gridEl = document.getElementById("cal-days-grid");
+      const labelEl = document.getElementById("cal-month-label");
+      if (!gridEl || !labelEl) return;
+
+      labelEl.textContent = `${ARABIC_MONTHS[calViewMonth]} ${calViewYear}`;
+
+      const firstDayWeekday = new Date(calViewYear, calViewMonth, 1).getDay(); // 0=Sun..6=Sat
+      const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      // Map YYYY-MM-DD -> array of dot colors
+      const dayEventsMap = {};
+      schedules.forEach(s => {
+        if (!s.startDate) return;
+        const info = getScheduleDueInfo(s);
+        if (!dayEventsMap[s.startDate]) dayEventsMap[s.startDate] = [];
+        dayEventsMap[s.startDate].push(info.dotColor);
+      });
+
+      let cellsHtml = "";
+      for (let empty = 0; empty < firstDayWeekday; empty++) {
+        cellsHtml += `<div class="cal-day-cell is-empty"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const mm = String(calViewMonth + 1).padStart(2, "0");
+        const dd = String(d).padStart(2, "0");
+        const dateStr = `${calViewYear}-${mm}-${dd}`;
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === calSelectedDate;
+        const dots = (dayEventsMap[dateStr] || []).slice(0, 4);
+
+        cellsHtml += `
+          <div class="cal-day-cell ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""}" onclick="selectCalendarDate('${dateStr}')">
+            <span>${d}</span>
+            <div class="cal-dots-row">
+              ${dots.map(c => `<span class="cal-dot" style="background:${isSelected ? "#fff" : c};"></span>`).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      gridEl.innerHTML = cellsHtml;
+
+      const selBar = document.getElementById("cal-selected-bar");
+      const selTxt = document.getElementById("cal-selected-text");
+      if (selBar && selTxt) {
+        if (calSelectedDate) {
+          selBar.style.display = "flex";
+          selTxt.textContent = `📅 المواعيد المجدولة ليوم: ${calSelectedDate}`;
+        } else {
+          selBar.style.display = "none";
+        }
+      }
+    }
+
+    function renderSchedulesList() {
+      const listEl = document.getElementById("schedules-list");
+      if (!listEl) return;
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      let todayCount = 0;
+      let dueCount = 0;
+      let progressCount = 0;
+      let doneCount = 0;
+
+      schedules.forEach(s => {
+        const info = getScheduleDueInfo(s);
+        if (s.startDate === todayStr && s.status !== "completed") todayCount++;
+        if (info.isAlert) dueCount++;
+        if (s.status === "in_progress") progressCount++;
+        if (s.status === "completed") doneCount++;
+      });
+
+      const elToday = document.getElementById("cal-kpi-today");
+      const elDue = document.getElementById("cal-kpi-due");
+      const elProg = document.getElementById("cal-kpi-progress");
+      const elDone = document.getElementById("cal-kpi-done");
+      if (elToday) elToday.textContent = todayCount;
+      if (elDue) elDue.textContent = dueCount;
+      if (elProg) elProg.textContent = progressCount;
+      if (elDone) elDone.textContent = doneCount;
+
+      const mapped = schedules.map((s, idx) => ({ s, idx, info: getScheduleDueInfo(s) }));
+      const filtered = mapped.filter(({ s, info }) => {
+        if (calSelectedDate && s.startDate !== calSelectedDate) return false;
+        if (scheduleFilter === "due") return info.isAlert;
+        if (scheduleFilter === "planned") return s.status === "planned";
+        if (scheduleFilter === "in_progress") return s.status === "in_progress";
+        if (scheduleFilter === "completed") return s.status === "completed";
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (a.s.status === "completed" && b.s.status !== "completed") return 1;
+        if (b.s.status === "completed" && a.s.status !== "completed") return -1;
+        return String(a.s.startDate).localeCompare(String(b.s.startDate));
+      });
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="empty-state">
+          <div style="font-size:32px; margin-bottom:8px;">📅</div>
+          <div style="font-weight:700; color:var(--text-secondary); margin-bottom:4px;">لا توجد مواعيد أو مهام مجدولة في هذا العرض</div>
+          <div style="font-size:12px;">اضغط على زر <strong>«+ موعد / بدء عمل»</strong> لإضافة تذكير أو جدول عمل جديد</div>
+        </div>`;
+        return;
+      }
+
+      const priorityMap = {
+        urgent: { label: "عاجل جداً", color: "#f87171" },
+        high: { label: "مهم", color: "#fbbf24" },
+        normal: { label: "عادي", color: "var(--text-secondary)" }
+      };
+
+      listEl.innerHTML = filtered.map(({ s, idx, info }) => {
+        const pr = priorityMap[s.priority] || priorityMap.normal;
+        return `
+          <article class="sched-card ${info.cardCls}">
+            <div class="item-top">
+              <span class="meta-tag meta-cat">🗓 ${escapeHtml(s.category || "بدء عمل جديد")}</span>
+              <span class="status-pill ${info.pillCls}">${info.label}</span>
+            </div>
+            <div class="item-name" style="margin-top:4px;">${escapeHtml(s.title)}</div>
+            <div class="item-meta">
+              <span class="meta-tag">📅 البدء: <strong>${escapeHtml(s.startDate)}</strong></span>
+              ${s.startTime ? `<span class="meta-tag">⏰ الساعة: <strong>${escapeHtml(s.startTime)}</strong></span>` : ""}
+              ${s.endDate ? `<span class="meta-tag">🏁 الانتهاء: ${escapeHtml(s.endDate)}</span>` : ""}
+              ${s.machine ? `<span class="meta-tag">🏭 ${escapeHtml(s.machine)}</span>` : ""}
+              <span class="meta-tag" style="color:${pr.color};">⚡ ${pr.label}</span>
+              <span class="meta-tag">🔔 تذكير: ${Number(s.remindDays) === 0 ? "نفس اليوم" : `قبل ${s.remindDays} يوم`}</span>
+            </div>
+            ${s.notes ? `<div class="item-notes">📝 ${escapeHtml(s.notes)}</div>` : ""}
+            <div class="item-footer" style="flex-wrap:wrap;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                ${s.status === "planned" ? `
+                  <button type="button" class="mini-btn" onclick="startScheduleWork(${idx})" style="background:rgba(56,189,248,0.16); border-color:var(--accent-steel); color:var(--accent-steel);">
+                    ▶ بدء العمل الآن
+                  </button>
+                ` : ""}
+                ${s.status !== "completed" ? `
+                  <button type="button" class="mini-btn" onclick="completeScheduleWork(${idx})" style="background:var(--status-ok-bg); border-color:var(--status-ok); color:var(--status-ok);">
+                    ✓ تم الإنجاز
+                  </button>
+                ` : `
+                  <button type="button" class="mini-btn" onclick="reopenScheduleWork(${idx})">
+                    ↺ إعادة فتح
+                  </button>
+                `}
+              </div>
+              <div class="card-actions">
+                <button type="button" class="mini-btn" onclick="openScheduleModal(${idx})">تعديل</button>
+                <button type="button" class="mini-btn" onclick="deleteSchedule(${idx})" style="color:#f87171;">حذف</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function openScheduleModal(editIdx = -1, prefillDate = "") {
+      document.getElementById("sched-edit-index").value = editIdx;
+      if (editIdx >= 0 && schedules[editIdx]) {
+        const s = schedules[editIdx];
+        document.getElementById("sched-modal-title").textContent = "تعديل موعد العمل / التذكير";
+        document.getElementById("s-title").value = s.title || "";
+        document.getElementById("s-category").value = s.category || "بدء عمل جديد";
+        document.getElementById("s-priority").value = s.priority || "normal";
+        document.getElementById("s-start-date").value = s.startDate || new Date().toISOString().slice(0, 10);
+        document.getElementById("s-start-time").value = s.startTime || "08:00";
+        document.getElementById("s-end-date").value = s.endDate || "";
+        document.getElementById("s-remind-days").value = String(s.remindDays ?? 1);
+        document.getElementById("s-machine").value = s.machine || "";
+        document.getElementById("s-status").value = s.status || "planned";
+        document.getElementById("s-notes").value = s.notes || "";
+      } else {
+        document.getElementById("sched-modal-title").textContent = "إضافة موعد بدء عمل / تذكير";
+        document.getElementById("s-title").value = "";
+        document.getElementById("s-category").value = "بدء عمل جديد";
+        document.getElementById("s-priority").value = "normal";
+        document.getElementById("s-start-date").value = prefillDate || calSelectedDate || new Date().toISOString().slice(0, 10);
+        document.getElementById("s-start-time").value = "08:00";
+        document.getElementById("s-end-date").value = "";
+        document.getElementById("s-remind-days").value = "1";
+        document.getElementById("s-machine").value = "";
+        document.getElementById("s-status").value = "planned";
+        document.getElementById("s-notes").value = "";
+      }
+      document.getElementById("schedule-modal").classList.add("open");
+    }
+
+    function saveSchedule(e) {
+      e.preventDefault();
+      if (!Array.isArray(schedules)) schedules = [];
+      const idx = parseInt(document.getElementById("sched-edit-index").value, 10);
+      const record = {
+        id: idx >= 0 && schedules[idx] ? schedules[idx].id : ("SCH-" + Date.now().toString().slice(-5)),
+        title: document.getElementById("s-title").value.trim(),
+        category: document.getElementById("s-category").value,
+        priority: document.getElementById("s-priority").value,
+        startDate: document.getElementById("s-start-date").value,
+        startTime: document.getElementById("s-start-time").value,
+        endDate: document.getElementById("s-end-date").value,
+        remindDays: parseInt(document.getElementById("s-remind-days").value, 10) || 0,
+        machine: document.getElementById("s-machine").value.trim(),
+        status: document.getElementById("s-status").value,
+        notes: document.getElementById("s-notes").value.trim()
+      };
+
+      if (idx >= 0) {
+        schedules[idx] = record;
+        commitInventoryChange(`تعديل موعد عمل (${record.title})`);
+        showToast("تم تعديل الموعد ومزامنة الجوالات ✓");
+      } else {
+        schedules.unshift(record);
+        commitInventoryChange(`إضافة موعد بدء عمل (${record.title} - ${record.startDate})`);
+        showToast("تمت إضافة الموعد في التقويم ومزامنة الجوالات ✓");
+      }
+      closeModal("schedule-modal");
+    }
+
+    function startScheduleWork(idx) {
+      if (!schedules[idx]) return;
+      schedules[idx].status = "in_progress";
+      commitInventoryChange(`بدء تنفيذ العمل (${schedules[idx].title})`);
+      showToast(`تم بدء العمل: "${schedules[idx].title}" ▶`);
+    }
+
+    function completeScheduleWork(idx) {
+      if (!schedules[idx]) return;
+      schedules[idx].status = "completed";
+      commitInventoryChange(`إنجاز العمل (${schedules[idx].title})`);
+      showToast(`تم إنجاز العمل: "${schedules[idx].title}" ✓`);
+    }
+
+    function reopenScheduleWork(idx) {
+      if (!schedules[idx]) return;
+      schedules[idx].status = "planned";
+      commitInventoryChange(`إعادة جدولة العمل (${schedules[idx].title})`);
+      showToast("تمت إعادة الموعد إلى مجدول");
+    }
+
+    function deleteSchedule(idx) {
+      if (!schedules[idx]) return;
+      const title = schedules[idx].title;
+      if (confirm(`هل أنت متأكد من حذف الموعد "${title}"؟`)) {
+        schedules.splice(idx, 1);
+        commitInventoryChange(`حذف موعد عمل (${title})`);
+        showToast("تم حذف الموعد وتحديث الجوالات");
+      }
+    }
+
+    // ==========================================
+    // MOBILE SOFT KEYBOARD OVERLAP PROTECTION
+    // ==========================================
+    (function setupKeyboardOverlapProtection() {
+      const root = document.documentElement;
+      let activeInputEl = null;
+
+      function isTextEntryElement(el) {
+        if (!el || !el.tagName) return false;
+        const tag = el.tagName.toUpperCase();
+        if (tag === "TEXTAREA" || tag === "SELECT") return true;
+        if (tag === "INPUT") {
+          const t = (el.type || "text").toLowerCase();
+          return !["button", "submit", "reset", "checkbox", "radio", "file", "hidden", "image"].includes(t);
+        }
+        return false;
+      }
+
+      function scrollFieldIntoSafeView(el) {
+        if (!el || !isTextEntryElement(el)) return;
+        const sheet = el.closest(".modal-sheet");
+        if (sheet) {
+          const sheetRect = sheet.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+          const targetTop = sheetRect.top + (sheetRect.height * 0.28);
+          const delta = elRect.top - targetTop;
+          sheet.scrollBy({ top: delta, behavior: "smooth" });
+        } else {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      function syncVisualViewport() {
+        const vv = window.visualViewport;
+        if (vv) {
+          const kbHeight = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+          root.style.setProperty("--vvh", Math.round(vv.height) + "px");
+          root.style.setProperty("--kb-offset", kbHeight + "px");
+          const isOpen = kbHeight > 110 || isTextEntryElement(document.activeElement);
+          document.body.classList.toggle("keyboard-open", isOpen);
+        } else {
+          document.body.classList.toggle("keyboard-open", isTextEntryElement(document.activeElement));
+        }
+        if (activeInputEl) {
+          scrollFieldIntoSafeView(activeInputEl);
+        }
+      }
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", syncVisualViewport);
+        window.visualViewport.addEventListener("scroll", syncVisualViewport);
+      }
+
+      document.addEventListener("focusin", (e) => {
+        if (isTextEntryElement(e.target)) {
+          activeInputEl = e.target;
+          document.body.classList.add("keyboard-open");
+          setTimeout(syncVisualViewport, 90);
+          setTimeout(() => scrollFieldIntoSafeView(activeInputEl), 260);
+          setTimeout(() => scrollFieldIntoSafeView(activeInputEl), 480);
+        }
+      });
+
+      document.addEventListener("focusout", () => {
+        setTimeout(() => {
+          if (!isTextEntryElement(document.activeElement)) {
+            activeInputEl = null;
+            syncVisualViewport();
+          }
+        }, 120);
+      });
+    })();
+
     // Boot Application
+    // Unregister any stale service workers or cached 500 responses
+    try {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
+      }
+      if ("caches" in window) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
+      }
+    } catch (e) {}
     setupDynamicPWAManifest();
     try {
       const savedPlates = localStorage.getItem("onbbs_dh_custom_plates");
@@ -4783,7 +5704,7 @@ function doPost(e) {
   <script>
     (function() {
       function cleanHostInjections() {
-        const appIds = new Set(["toast", "item-modal", "qr-modal", "payment-modal"]);
+        const appIds = new Set(["toast", "item-modal", "qr-modal", "payment-modal", "schedule-modal"]);
         document.querySelectorAll("body > *").forEach(el => {
           const isMainContainer = el.tagName === "MAIN" && el.classList.contains("container");
           const isAppBar = el.tagName === "HEADER" && el.classList.contains("app-bar");
