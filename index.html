@@ -1623,29 +1623,45 @@
 
     <!-- TAB 3: ALERTS & ACTIVITY LOG -->
     <section id="tab-alerts" class="tab-page">
-      <!-- System & In-App Notification Permission Card -->
+      <!-- System & Background Push Notification Card -->
       <div class="section-card" id="notif-perm-card" style="border-color:var(--accent-steel);">
         <div class="section-header" style="margin-bottom:8px;">
           <div class="section-title" style="color:var(--accent-steel);">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            إشعارات وتنبيهات الجوال الفورية
+            إشعارات الجوال في الخلفية وشاشة القفل
           </div>
-          <span class="status-pill pill-ok" id="notif-perm-badge">مفعّلة (صوتي ومرئي ✓)</span>
+          <span class="status-pill pill-low" id="notif-perm-badge">جاري الفحص...</span>
         </div>
         <p id="notif-perm-desc" style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
-          التنبيهات الصوتية والمرئية مفعّلة داخل التطبيق. اضغط لتفعيل إشعارات شاشة الجوال الخارجية أيضاً عند فتح التطبيق عبر Chrome.
+          لتصلك التنبيهات على شاشة الجوال مثل الرسائل حتى والتطبيق مغلق تماماً، فعّل إشعارات النظام وثبّت التطبيق من قائمة Chrome (⋮ ← الإضافة إلى الشاشة الرئيسية).
         </p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
           <button type="button" class="mini-btn" id="btn-req-notif" onclick="requestAppNotificationPermission()" style="background:var(--accent-steel); color:#07131d; border:none; padding:9px 14px; font-weight:800;">
-            🔔 تفعيل إشعارات الجوال والصوت
+            🔔 السماح بإشعارات شاشة الجوال
           </button>
           <button type="button" class="mini-btn" onclick="sendTestSystemNotification()" style="border-color:var(--status-ok); color:var(--status-ok); padding:9px 14px;">
-            🔊 تجربة التنبيه والصوت
+            📲 إرسال إشعار تجربة
           </button>
           <button type="button" class="mini-btn" id="btn-sound-toggle" onclick="toggleAlertSoundSetting()" style="border-color:var(--accent-gold); color:var(--accent-gold); padding:9px 12px;">
             🔈 الصوت: مفعّل
           </button>
         </div>
+
+        <!-- Optional Instant Background Push via ntfy.sh (Delivers even when browser/app is 100% killed!) -->
+        <details style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:12px; padding:10px 12px;">
+          <summary style="font-size:12px; font-weight:800; color:var(--accent-gold); cursor:pointer;">
+            📡 استقبال الإشعارات الفورية حتى عند إغلاق التطبيق من الخلفية نهائياً (اختياري)
+          </summary>
+          <div style="font-size:11.5px; color:var(--text-secondary); margin-top:8px; line-height:1.55;">
+            نظام أندرويد قد يوقف الصفحات المغلقة تماماً لتوفير البطارية. لضمان وصول الإشعارات مثل الواتساب 100% حتى بعد إغلاق التطبيق من القائمة:
+            <br/>1. حمّل تطبيق <strong>ntfy</strong> المجاني من متجر Google Play واشترك في اسم قناة سري خاص بورشتك (مثلاً: <code dir="ltr" style="color:var(--accent-steel);">onbbs_alerts_991</code>).
+            <br/>2. اكتب نفس اسم القناة هنا ليتم إرسال كل تنبيه جديد إليها فوراً:
+          </div>
+          <div style="display:flex; gap:7px; margin-top:8px;">
+            <input type="text" id="cfg-ntfy-topic" class="form-control" dir="ltr" placeholder="onbbs_alerts_991" style="padding:8px 10px; font-size:12.5px;" />
+            <button type="button" class="mini-btn" onclick="saveNtfyTopic()" style="background:var(--accent-gold); color:#07131d; border:none; padding:8px 14px; white-space:nowrap;">حفظ القناة</button>
+          </div>
+        </details>
       </div>
 
       <div class="section-card">
@@ -2512,14 +2528,47 @@ function doPost(e) {
     }
 
     // ==========================================
-    // DUAL-ENGINE NOTIFICATIONS (OS + IN-APP CHIME & BANNER)
+    // BACKGROUND & LOCK-SCREEN NOTIFICATION ENGINE
     // ==========================================
     const NOTIFIED_HISTORY_KEY = "onbbs_notified_sigs_v1";
     const SOUND_PREF_KEY = "onbbs_alert_sound_enabled";
+    const NTFY_TOPIC_KEY = "onbbs_ntfy_topic_v1";
+    const SW_SNAPSHOT_CACHE = "onbbs-bg-state-v1";
     let alertSoundEnabled = true;
+    let ntfyTopic = "";
     try {
       if (localStorage.getItem(SOUND_PREF_KEY) === "0") alertSoundEnabled = false;
+      ntfyTopic = localStorage.getItem(NTFY_TOPIC_KEY) || "";
     } catch (e) {}
+
+    function saveNtfyTopic() {
+      const inp = document.getElementById("cfg-ntfy-topic");
+      if (!inp) return;
+      ntfyTopic = inp.value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+      inp.value = ntfyTopic;
+      try { localStorage.setItem(NTFY_TOPIC_KEY, ntfyTopic); } catch (e) {}
+      if (ntfyTopic) {
+        sendExternalNtfyPush("ONBBS MACHINE SHOP", "تم ربط قناة الإشعارات الفورية بنجاح! ستصلك التنبيهات حتى والتطبيق مغلق.", "high");
+        showToast("تم حفظ قناة الإشعارات الفورية وإرسال رسالة اختبار ✓");
+      } else {
+        showToast("تم مسح قناة الإشعارات الخارجية");
+      }
+    }
+
+    async function sendExternalNtfyPush(title, body, priority = "default") {
+      if (!ntfyTopic) return;
+      try {
+        await fetch(`https://ntfy.sh/${encodeURIComponent(ntfyTopic)}`, {
+          method: "POST",
+          headers: {
+            "Title": title,
+            "Priority": priority,
+            "Tags": "wrench,bell"
+          },
+          body: body
+        });
+      } catch (e) {}
+    }
 
     function playWorkshopAlertChime() {
       if (!alertSoundEnabled) return;
@@ -2528,7 +2577,7 @@ function doPost(e) {
         if (!AudioCtx) return;
         const ctx = new AudioCtx();
         if (ctx.state === "suspended") ctx.resume().catch(() => {});
-        const notes = [587.33, 783.99, 1046.50]; // D5 -> G5 -> C6 clean chime
+        const notes = [587.33, 783.99, 1046.50];
         notes.forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -2582,28 +2631,184 @@ function doPost(e) {
       }
     }
 
+    // Save current state snapshot into CacheStorage so the Background Service Worker can check alerts even when app is closed!
+    async function syncStateToBackgroundWorker() {
+      try {
+        if (!("caches" in window)) return;
+        const cache = await caches.open(SW_SNAPSHOT_CACHE);
+        let notifiedMap = {};
+        try { notifiedMap = JSON.parse(localStorage.getItem(NOTIFIED_HISTORY_KEY) || "{}"); } catch (e) {}
+        const snapshot = {
+          inventory,
+          payments,
+          schedules,
+          acknowledgedAlerts,
+          notifiedMap,
+          syncConfig,
+          savedAt: Date.now()
+        };
+        await cache.put(
+          new Request("https://onbbs-local-state/snapshot.json"),
+          new Response(JSON.stringify(snapshot), { headers: { "Content-Type": "application/json" } })
+        );
+        if ("serviceWorker" in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg && reg.active) {
+            reg.active.postMessage({ type: "CHECK_ALERTS_NOW" });
+          }
+          if (reg && "sync" in reg) {
+            try { await reg.sync.register("onbbs-bg-check"); } catch (e) {}
+          }
+          if (reg && "periodicSync" in reg) {
+            try { await reg.periodicSync.register("onbbs-periodic-alerts", { minInterval: 15 * 60 * 1000 }); } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Registers a real Service Worker (sw.js if hosted on GitHub Pages, or inline Data-URI fallback)
     async function ensureNotificationServiceWorker() {
       try {
         if (!("serviceWorker" in navigator)) return null;
         if (!/^https?:$/i.test(window.location.protocol)) return null;
-        const existing = await navigator.serviceWorker.getRegistration();
-        if (existing) return existing;
-        const swCode = `
-          self.addEventListener('install', () => self.skipWaiting());
-          self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-          self.addEventListener('notificationclick', (e) => {
-            e.notification.close();
-            e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-              if (list.length > 0) return list[0].focus();
-              return self.clients.openWindow('./');
-            }));
-          });
-        `;
-        const blob = new Blob([swCode], { type: "application/javascript" });
-        return await navigator.serviceWorker.register(URL.createObjectURL(blob));
+
+        let reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          // 1. Try registering sibling ./sw.js first (gives full background scope on GitHub Pages)
+          try {
+            reg = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+          } catch (e1) {
+            // 2. Fallback: inline data-URI Service Worker if sw.js wasn't uploaded separately
+            const swSource = buildServiceWorkerCode();
+            const dataUrl = "data:application/javascript;base64," + btoa(unescape(encodeURIComponent(swSource)));
+            try {
+              reg = await navigator.serviceWorker.register(dataUrl);
+            } catch (e2) {}
+          }
+        }
+        return reg || (await navigator.serviceWorker.ready.catch(() => null));
       } catch (e) {
         return null;
       }
+    }
+
+    function buildServiceWorkerCode() {
+      return `
+        const SNAP_CACHE = "${SW_SNAPSHOT_CACHE}";
+        self.addEventListener("install", (e) => { self.skipWaiting(); });
+        self.addEventListener("activate", (e) => { e.waitUntil(self.clients.claim()); });
+        self.addEventListener("notificationclick", (e) => {
+          e.notification.close();
+          e.waitUntil(
+            self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+              for (const c of clients) {
+                if ("focus" in c) return c.focus();
+              }
+              return self.clients.openWindow("./");
+            })
+          );
+        });
+        async function runBackgroundAlertScan() {
+          try {
+            const cache = await caches.open(SNAP_CACHE);
+            const resp = await cache.match("https://onbbs-local-state/snapshot.json");
+            if (!resp) return;
+            const snap = await resp.json();
+            const todayISO = new Date().toISOString().slice(0, 10);
+            const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+            const notified = snap.notifiedMap || {};
+            const acked = snap.acknowledgedAlerts || {};
+            let dirty = false;
+
+            // Check remote Firebase for updates while app is closed
+            if (snap.syncConfig && snap.syncConfig.enabled && snap.syncConfig.provider === "firebase" && snap.syncConfig.firebaseUrl) {
+              try {
+                let base = String(snap.syncConfig.firebaseUrl).trim().replace(/\/+$/, "");
+                const room = String(snap.syncConfig.firebaseRoom || "onbbs_main_workshop").replace(/[.#$\/\[\]\s]+/g, "_");
+                const r = await fetch(base + "/" + room + ".json");
+                if (r.ok) {
+                  const remote = await r.json();
+                  if (remote) {
+                    if (Array.isArray(remote.items)) snap.inventory = remote.items;
+                    if (Array.isArray(remote.payments)) snap.payments = remote.payments;
+                    if (Array.isArray(remote.schedules)) snap.schedules = remote.schedules;
+                  }
+                }
+              } catch (netErr) {}
+            }
+
+            // 1. Work Schedules
+            (snap.schedules || []).forEach((s) => {
+              if (!s || s.status === "completed" || s.status === "in_progress" || !s.startDate) return;
+              const parts = String(s.startDate).split("-").map(Number);
+              if (parts.length !== 3) return;
+              const target = new Date(parts[0], parts[1] - 1, parts[2]);
+              const today = new Date(); today.setHours(0,0,0,0);
+              const diff = Math.round((target - today) / 86400000);
+              const remWin = Number(s.remindDays ?? 1);
+              if (diff <= remWin) {
+                if (diff === 0 && s.startTime) {
+                  const [hh, mm] = String(s.startTime).split(":").map(Number);
+                  if (!isNaN(hh) && nowMins < (hh * 60 + (mm || 0) - 30)) return;
+                }
+                const sig = ("sched_" + s.id + "_" + s.startDate + "_" + s.status).replace(/[.#$\/\[\]\s]+/g, "_");
+                const dKey = sig + "_" + todayISO;
+                if (!acked[sig] && !notified[dKey]) {
+                  notified[dKey] = Date.now();
+                  dirty = true;
+                  self.registration.showNotification("⏰ تذكير بدء عمل: " + s.title, {
+                    body: "التاريخ: " + parts[2] + "/" + parts[1] + "/" + parts[0] + (s.startTime ? " • الساعة " + s.startTime : ""),
+                    tag: dKey,
+                    renotify: true,
+                    dir: "rtl",
+                    lang: "ar"
+                  });
+                }
+              }
+            });
+
+            // 2. Payments
+            (snap.payments || []).forEach((p) => {
+              if (!p || p.paidForCycle || !p.dueDate) return;
+              const due = new Date(p.dueDate + "T00:00:00");
+              const today = new Date(); today.setHours(0,0,0,0);
+              const diff = Math.round((due - today) / 86400000);
+              if (diff <= Number(p.remindDays ?? 3)) {
+                const sig = ("pay_" + p.id + "_" + p.dueDate + "_" + (p.paidInstallments || 0)).replace(/[.#$\/\[\]\s]+/g, "_");
+                const dKey = sig + "_" + todayISO;
+                if (!acked[sig] && !notified[dKey]) {
+                  notified[dKey] = Date.now();
+                  dirty = true;
+                  self.registration.showNotification("💳 تذكير دفعة: " + p.title, {
+                    body: "المبلغ: " + p.amount + " ر.س • الاستحقاق: " + p.dueDate,
+                    tag: dKey,
+                    renotify: true,
+                    dir: "rtl",
+                    lang: "ar"
+                  });
+                }
+              }
+            });
+
+            if (dirty) {
+              snap.notifiedMap = notified;
+              await cache.put(
+                new Request("https://onbbs-local-state/snapshot.json"),
+                new Response(JSON.stringify(snap), { headers: { "Content-Type": "application/json" } })
+              );
+            }
+          } catch (err) {}
+        }
+        self.addEventListener("periodicsync", (e) => {
+          if (e.tag === "onbbs-periodic-alerts") e.waitUntil(runBackgroundAlertScan());
+        });
+        self.addEventListener("sync", (e) => {
+          if (e.tag === "onbbs-bg-check") e.waitUntil(runBackgroundAlertScan());
+        });
+        self.addEventListener("message", (e) => {
+          if (e.data && e.data.type === "CHECK_ALERTS_NOW") e.waitUntil(runBackgroundAlertScan());
+        });
+      `;
     }
 
     function updateNotificationPermissionUI() {
@@ -2611,6 +2816,8 @@ function doPost(e) {
       const desc = document.getElementById("notif-perm-desc");
       const btn = document.getElementById("btn-req-notif");
       const sndBtn = document.getElementById("btn-sound-toggle");
+      const ntfyInp = document.getElementById("cfg-ntfy-topic");
+      if (ntfyInp && !ntfyInp.value && ntfyTopic) ntfyInp.value = ntfyTopic;
       if (sndBtn) {
         sndBtn.textContent = alertSoundEnabled ? "🔈 الصوت: مفعّل" : "🔇 الصوت: مكتوم";
       }
@@ -2621,57 +2828,118 @@ function doPost(e) {
       const isHttpsOrLocal = /^https?:$/i.test(window.location.protocol);
 
       if (!hasWebNotif || !isHttpsOrLocal) {
-        badge.className = "status-pill pill-ok";
-        badge.textContent = "مفعّلة (تنبيه صوتي ومرئي ✓)";
-        desc.textContent = "التنبيهات الصوتية والاهتزاز واللافتات الفورية مفعّلة وتعمل مباشرة الآن. (ملاحظة: لتفعيل إشعارات شاشة القفل الخارجية، افتح رابط الموقع عبر متصفح Google Chrome).";
+        badge.className = "status-pill pill-low";
+        badge.textContent = "افتح عبر Chrome لإشعارات الشاشة";
+        desc.textContent = "أنت تفتح التطبيق حالياً من ملف محلي أو متصفح داخلي. لتصلك الإشعارات على شاشة الجوال مثل الرسائل، افتح رابط GitHub في متصفح Google Chrome واضغط زر السماح أدناه.";
         btn.textContent = "🔔 تفعيل الصوت والاهتزاز";
-        btn.style.background = "var(--status-ok-bg)";
-        btn.style.color = "var(--status-ok)";
-        btn.style.border = "1px solid var(--status-ok)";
         return;
       }
 
       const perm = Notification.permission;
       if (perm === "granted") {
         badge.className = "status-pill pill-ok";
-        badge.textContent = "مفعّلة بالكامل (نظام + صوت) ✓";
-        desc.textContent = "صلاحية إشعارات الجوال والصوت مفعّلة بالكامل. سيصلك تنبيه فوري عند مواعيد بدء العمل، الأقساط، أو نقص المخزون.";
-        btn.textContent = "✓ إشعارات الجوال مفعّلة";
+        badge.textContent = "مفعّلة على شاشة الجوال ✓";
+        desc.textContent = "صلاحية إشعارات الجوال مفعّلة بنجاح! ستصلك التنبيهات في شريط إشعارات الجوال وعلى شاشة القفل تلقائياً.";
+        btn.textContent = "✓ إشعارات شاشة الجوال مفعّلة";
         btn.style.background = "var(--status-ok-bg)";
         btn.style.color = "var(--status-ok)";
         btn.style.border = "1px solid var(--status-ok)";
       } else if (perm === "denied") {
-        badge.className = "status-pill pill-low";
-        badge.textContent = "داخلي مفعّل • الخارجي محظور";
-        desc.textContent = "التنبيهات الصوتية والمرئية تعمل داخل التطبيق. لتفعيل إشعارات شاشة القفل: اضغط على أيقونة القفل (🔒) بجانب الرابط بالأعلى ← الأذونات ← الإشعارات ← سماح.";
-        btn.textContent = "🔔 إعادة طلب إشعارات النظام";
+        badge.className = "status-pill pill-out";
+        badge.textContent = "محظورة من المتصفح";
+        desc.textContent = "تم رفض الإشعارات سابقاً. لتفعيلها: اضغط أيقونة القفل (🔒) بجانب رابط الموقع بالأعلى ← الأذونات ← الإشعارات ← سماح (Allow).";
+        btn.textContent = "🔔 إعادة طلب الإذن";
         btn.style.background = "var(--accent-steel)";
         btn.style.color = "#07131d";
         btn.style.border = "none";
       } else {
         badge.className = "status-pill pill-low";
-        badge.textContent = "اضغط للسماح بإشعارات الشاشة";
-        desc.textContent = "اضغط «تفعيل إشعارات الجوال والصوت» لمنح التطبيق صلاحية إرسال تنبيهات على شاشة الجوال بالإضافة للتنبيه الصوتي.";
-        btn.textContent = "🔔 تفعيل إشعارات الجوال والصوت";
+        badge.textContent = "بانتظار السماح";
+        desc.textContent = "اضغط «السماح بإشعارات شاشة الجوال» ثم اختر «سماح / Allow» لتصلك التنبيهات مثل الرسائل في شريط إشعارات الجوال.";
+        btn.textContent = "🔔 السماح بإشعارات شاشة الجوال";
         btn.style.background = "var(--accent-steel)";
         btn.style.color = "#07131d";
         btn.style.border = "none";
       }
     }
 
-    async function fireNativeNotification(title, body, tag = "onbbs-alert", actionsHtml = "") {
-      // 1. Always trigger vibration + synthesized audio chime + prominent in-app banner
+    // Schedules a future OS notification using TimestampTrigger (Chrome Android) if supported
+    async function scheduleFutureOSNotification(title, body, tag, timestampMs) {
       try {
-        if ("vibrate" in navigator) {
-          navigator.vibrate([260, 110, 260]);
+        if (!("Notification" in window) || Notification.permission !== "granted") return;
+        if (!("TimestampTrigger" in window)) return;
+        if (timestampMs <= Date.now() + 5000) return;
+        const reg = await ensureNotificationServiceWorker();
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, {
+            body: body,
+            icon: LOGO_DATA_URI,
+            badge: LOGO_DATA_URI,
+            tag: tag,
+            showTrigger: new TimestampTrigger(timestampMs),
+            dir: "rtl",
+            lang: "ar"
+          });
         }
+      } catch (e) {}
+    }
+
+    function syncAllFutureNotificationTriggers() {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      schedules.forEach((s) => {
+        if (!s || s.status === "completed" || s.status === "in_progress" || !s.startDate) return;
+        const parts = String(s.startDate).split("-").map(Number);
+        if (parts.length !== 3) return;
+        const [hh, mm] = s.startTime ? formatTime24(s.startTime).split(":").map(Number) : [8, 0];
+        const fireDate = new Date(parts[0], parts[1] - 1, parts[2], isNaN(hh) ? 8 : hh, isNaN(mm) ? 0 : mm, 0);
+        const remindDays = Number(s.remindDays ?? 0);
+        const triggerTime = fireDate.getTime() - remindDays * 86400000;
+        if (triggerTime > Date.now() + 10000) {
+          const sig = sanitizeFirebaseKey(`trig_sched_${s.id}_${s.startDate}_${s.startTime || "0800"}`);
+          scheduleFutureOSNotification(
+            `⏰ موعد بدء عمل: ${s.title}`,
+            `التاريخ: ${formatDateDDMMYYYY(s.startDate)}${s.startTime ? " • الساعة " + formatTime24(s.startTime) : ""}`,
+            sig,
+            triggerTime
+          );
+        }
+      });
+
+      payments.forEach((p) => {
+        if (!p || p.paidForCycle || !p.dueDate) return;
+        const parts = String(p.dueDate).split("-").map(Number);
+        if (parts.length !== 3) return;
+        const dueDate = new Date(parts[0], parts[1] - 1, parts[2], 9, 0, 0);
+        const remindDays = Number(p.remindDays ?? 3);
+        const triggerTime = dueDate.getTime() - remindDays * 86400000;
+        if (triggerTime > Date.now() + 10000) {
+          const sig = sanitizeFirebaseKey(`trig_pay_${p.id}_${p.dueDate}`);
+          scheduleFutureOSNotification(
+            `💳 تذكير دفعة: ${p.title}`,
+            `المبلغ: ${Number(p.amount).toLocaleString()} ر.س • الاستحقاق: ${formatDateDDMMYYYY(p.dueDate)}`,
+            sig,
+            triggerTime
+          );
+        }
+      });
+    }
+
+    async function fireNativeNotification(title, body, tag = "onbbs-alert", actionsHtml = "", sendPush = false) {
+      // 1. Vibration + Audio Chime + In-App Banner
+      try {
+        if ("vibrate" in navigator) navigator.vibrate([260, 110, 260]);
       } catch (e) {}
       playWorkshopAlertChime();
       showInAppAlarmBanner(title, body, actionsHtml);
 
-      // 2. Also dispatch OS system notification if permitted
+      // 2. External background push (if ntfy channel is configured)
+      if (sendPush && ntfyTopic) {
+        sendExternalNtfyPush(title, body, "high");
+      }
+
+      // 3. OS System Notification (Shows in Android Status Bar & Lock Screen)
       if (!("Notification" in window) || Notification.permission !== "granted") {
-        return true;
+        return false;
       }
 
       const options = {
@@ -2680,6 +2948,8 @@ function doPost(e) {
         badge: LOGO_DATA_URI,
         tag: tag,
         renotify: true,
+        requireInteraction: true,
+        vibrate: [250, 100, 250],
         dir: "rtl",
         lang: "ar"
       };
@@ -2699,8 +2969,10 @@ function doPost(e) {
           switchTab("alerts");
           n.close();
         };
-      } catch (e) {}
-      return true;
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
 
     async function requestAppNotificationPermission() {
@@ -2713,49 +2985,66 @@ function doPost(e) {
 
       if (!hasWebNotif || !isHttpsOrLocal) {
         updateNotificationPermissionUI();
-        showInAppAlarmBanner(
-          "🔔 تم تفعيل التنبيهات الصوتية والمرئية ✓",
-          "سيقوم التطبيق بتنبيهك بالصوت والاهتزاز ولافتة فورية عند مواعيد بدء العمل والأقساط ونقص المخزون."
-        );
-        showToast("تم تفعيل التنبيهات الصوتية والاهتزاز بنجاح ✓");
+        showToast("افتح رابط GitHub في متصفح Google Chrome لتفعيل إشعارات شاشة الجوال");
         return;
       }
 
       try {
-        await ensureNotificationServiceWorker();
+        const reg = await ensureNotificationServiceWorker();
         const result = await Notification.requestPermission();
         updateNotificationPermissionUI();
         if (result === "granted") {
-          showToast("تم تفعيل صلاحية التنبيهات بنجاح ✓");
+          if (reg && "periodicSync" in reg) {
+            try {
+              await reg.periodicSync.register("onbbs-periodic-alerts", { minInterval: 15 * 60 * 1000 });
+            } catch (e) {}
+          }
+          syncAllFutureNotificationTriggers();
+          syncStateToBackgroundWorker();
+          showToast("تم تفعيل إشعارات شاشة الجوال بنجاح ✓");
           await fireNativeNotification(
             "ONBBS MACHINE SHOP",
-            "تم تفعيل إشعارات الورشة بنجاح! ستصلك تنبيهات مواعيد بدء العمل والأقساط ونقص المخزون.",
-            "onbbs-welcome"
+            "تم تفعيل إشعارات شاشة الجوال! ستصلك التنبيهات في شريط الإشعارات مثل الرسائل.",
+            "onbbs-welcome",
+            "",
+            true
           );
           checkAndDispatchSystemNotifications(true);
         } else if (result === "denied") {
-          showToast("التنبيهات الصوتية مفعّلة • لإشعارات الشاشة فعّلها من أيقونة 🔒 بجانب الرابط");
+          showToast("الإشعارات محظورة — اضغط أيقونة القفل 🔒 بجانب الرابط بالأعلى لتفعيلها");
         } else {
-          showToast("التنبيهات الصوتية والمرئية مفعّلة داخل التطبيق ✓");
+          showToast("اضغط «سماح / Allow» في نافذة المتصفح لتفعيل الإشعارات");
         }
       } catch (err) {
         updateNotificationPermissionUI();
-        showToast("تم تفعيل التنبيهات الصوتية والمرئية داخل التطبيق ✓");
+        showToast("تعذر طلب الإذن — تحقق من إعدادات الإشعارات في Chrome");
       }
     }
 
     async function sendTestSystemNotification() {
+      if ("Notification" in window && Notification.permission === "default") {
+        await requestAppNotificationPermission();
+        return;
+      }
       const nowStr = `${formatDateDDMMYYYY(new Date().toISOString().slice(0, 10))} • ${getNowTime24(false)}`;
-      await fireNativeNotification(
-        "🔔 تجربة تنبيه ONBBS MACHINE SHOP",
-        `التنبيهات الصوتية والمرئية تعمل بنجاح على جوالك (${nowStr})`,
-        "onbbs-test-" + Date.now()
+      const osSent = await fireNativeNotification(
+        "🔔 تنبيه من ONBBS MACHINE SHOP",
+        `وصول إشعار تجريبي إلى شريط إشعارات الجوال (${nowStr})`,
+        "onbbs-test-" + Date.now(),
+        "",
+        true
       );
-      showToast("تم إرسال التنبيه التجريبي ✓");
+      if (osSent) {
+        showToast("تم إرسال إشعار إلى شريط إشعارات الجوال بالأعلى ✓");
+      } else {
+        showToast("تم تشغيل التنبيه الداخلي (فعّل إذن Chrome لإشعارات شاشة القفل)");
+      }
     }
 
     function checkAndDispatchSystemNotifications(forceNotifyToday = false) {
       updateNotificationPermissionUI();
+      syncStateToBackgroundWorker();
+      syncAllFutureNotificationTriggers();
 
       let notifiedMap = {};
       try {
@@ -2794,7 +3083,8 @@ function doPost(e) {
             `⏰ تذكير بدء عمل: ${s.title}`,
             `التاريخ: ${formatDateDDMMYYYY(s.startDate)}${timePart} (${info.label})`,
             dailyKey,
-            actions
+            actions,
+            true
           );
         }
       });
@@ -2813,12 +3103,13 @@ function doPost(e) {
             `💳 تذكير دفعة: ${p.title}`,
             `المبلغ: ${Number(p.amount).toLocaleString()} ر.س • الاستحقاق: ${formatDateDDMMYYYY(p.dueDate)} (${info.label})`,
             dailyKey,
-            actions
+            actions,
+            true
           );
         }
       });
 
-      // 3. Check low/out of stock items (only when OS permission granted or explicitly forced)
+      // 3. Check low/out of stock items
       if (forceNotifyToday || ("Notification" in window && Notification.permission === "granted")) {
         activeLow.forEach(({ item, sig }) => {
           const dailyKey = `${sig}_${todayISO}`;
@@ -2828,7 +3119,9 @@ function doPost(e) {
             fireNativeNotification(
               `📦 تنبيه نقص مخزون: ${item.name}`,
               `الرمز: ${item.code} • المتوفر: ${item.qty} (الحد الأدنى: ${item.minQty})`,
-              dailyKey
+              dailyKey,
+              "",
+              true
             );
           }
         });
@@ -3141,6 +3434,7 @@ function doPost(e) {
           updatedAt: lastUpdatedAt,
           pendingPush: pendingPush
         }));
+        syncStateToBackgroundWorker();
       } catch (e) {}
     }
 
@@ -5525,6 +5819,10 @@ function doPost(e) {
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         updateFullscreenButtonUI();
+        checkAndDispatchSystemNotifications(false);
+      } else {
+        syncStateToBackgroundWorker();
+        syncAllFutureNotificationTriggers();
       }
     });
 
@@ -6015,15 +6313,8 @@ function doPost(e) {
     })();
 
     // Boot Application
-    // Unregister any stale service workers or cached 500 responses
-    try {
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
-      }
-      if ("caches" in window) {
-        caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
-      }
-    } catch (e) {}
+    // Initialize persistent Background Notification Service Worker
+    ensureNotificationServiceWorker();
     // Inject single embedded LOGO_DATA_URI into icons and brand images
     try {
       const fav = document.getElementById("dynamic-favicon");
